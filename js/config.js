@@ -9,7 +9,7 @@ const CONFIG = {
   // API Endpoints (NEW CLEAN API!)
   ENDPOINTS: {
     // Auth
-    LOGIN: '/auth/login',
+    LOGIN: '/api/login',
     LOGOUT: '/auth/logout',
     ME: '/auth/me',
     
