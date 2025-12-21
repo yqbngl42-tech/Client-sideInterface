@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ניהול תשלומים - מערכת ניהול מוניות</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dark-mode.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>
+          <i class="fas fa-taxi"></i>
+          Taxi Manager
+        </h2>
+        <div class="user-info" id="userInfo">
+          <i class="fas fa-user-circle"></i>
+          מנהל מערכת
+        </div>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li class="menu-section-title">ניהול</li>
+        <a href="dashboard.html" class="menu-item">
+          <i class="fas fa-home"></i>
+          <span>לוח בקרה</span>
+        </a>
+        <a href="rides.html" class="menu-item">
+          <i class="fas fa-car"></i>
+          <span>נסיעות</span>
+        </a>
+        <a href="drivers.html" class="menu-item">
+          <i class="fas fa-users"></i>
+          <span>נהגים</span>
+        </a>
+        <a href="registrations.html" class="menu-item">
+          <i class="fas fa-user-plus"></i>
+          <span>רישומים חדשים</span>
+        </a>
+        <a href="payments.html" class="menu-item active">
+          <i class="fas fa-money-bill-wave"></i>
+          <span>תשלומים</span>
+        </a>
+        
+        <li class="menu-section-title">מערכת</li>
+        <a href="settings.html" class="menu-item">
+          <i class="fas fa-cog"></i>
+          <span>הגדרות</span>
+        </a>
+        <a href="#" class="menu-item" id="logoutBtn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>התנתק</span>
+        </a>
+      </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- HEADER -->
+      <header class="header">
+        <div class="header-title">
+          <h1>
+            <i class="fas fa-money-bill-wave"></i>
+            ניהול תשלומים
+          </h1>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-success" id="addPaymentBtn">
+            <i class="fas fa-plus"></i>
+            תשלום חדש
+          </button>
+          <button class="btn-icon" id="themeToggle" title="החלף ערכת נושא">
+            <i class="fas fa-moon"></i>
+          </button>
+          <button class="btn-icon" title="רענן" id="refreshBtn">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTENT -->
+      <div class="content-area">
+        
+        <!-- STATS -->
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 20px;">
+          <div class="stat-card">
+            <div class="stat-info">
+              <h3>סה"כ הכנסות</h3>
+              <div class="stat-value" id="totalRevenue">₪0</div>
+            </div>
+            <div class="stat-icon primary">
+              <i class="fas fa-chart-line"></i>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-info">
+              <h3>שולם</h3>
+              <div class="stat-value" id="totalPaid">₪0</div>
+            </div>
+            <div class="stat-icon success">
+              <i class="fas fa-check-circle"></i>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-info">
+              <h3>לא שולם</h3>
+              <div class="stat-value" id="totalUnpaid">₪0</div>
+            </div>
+            <div class="stat-icon danger">
+              <i class="fas fa-exclamation-circle"></i>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-info">
+              <h3>באיחור</h3>
+              <div class="stat-value" id="overdueCount">0</div>
+            </div>
+            <div class="stat-icon warning">
+              <i class="fas fa-clock"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- FILTERS -->
+        <div class="card">
+          <div class="card-header">
+            <h2>
+              <i class="fas fa-filter"></i>
+              סינונים וחיפוש
+            </h2>
+          </div>
+          <div class="card-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+              <div class="form-group">
+                <label>סטטוס</label>
+                <select id="filterStatus" class="form-control">
+                  <option value="">הכל</option>
+                  <option value="pending">ממתין</option>
+                  <option value="paid">שולם</option>
+                  <option value="overdue">באיחור</option>
+                  <option value="cancelled">בוטל</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label>סוג</label>
+                <select id="filterType" class="form-control">
+                  <option value="">הכל</option>
+                  <option value="ride">נסיעה</option>
+                  <option value="monthly">חודשי</option>
+                  <option value="commission">עמלה</option>
+                  <option value="fine">קנס</option>
+                  <option value="other">אחר</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label>נהג</label>
+                <select id="filterDriver" class="form-control">
+                  <option value="">הכל</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label>תקופה</label>
+                <select id="filterPeriod" class="form-control">
+                  <option value="">הכל</option>
+                  <option value="today">היום</option>
+                  <option value="week">השבוע</option>
+                  <option value="month">החודש</option>
+                  <option value="custom">מותאם אישית</option>
+                </select>
+              </div>
+              
+              <div class="form-group" id="dateRangeGroup" style="display: none;">
+                <label>מתאריך</label>
+                <input type="date" id="dateFrom" class="form-control">
+              </div>
+              
+              <div class="form-group" id="dateRangeGroup2" style="display: none;">
+                <label>עד תאריך</label>
+                <input type="date" id="dateTo" class="form-control">
+              </div>
+              
+              <div class="form-group">
+                <label>חיפוש</label>
+                <input type="text" id="searchQuery" class="form-control" placeholder="מספר תשלום, הערה...">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAYMENTS TABLE -->
+        <div class="card">
+          <div class="card-header">
+            <h2>
+              <i class="fas fa-list"></i>
+              רשימת תשלומים
+              <span class="badge" id="paymentsCount">0</span>
+            </h2>
+            <div style="display: flex; gap: 10px;">
+              <button class="btn btn-sm btn-secondary" id="exportBtn">
+                <i class="fas fa-file-excel"></i>
+                ייצא
+              </button>
+              <button class="btn btn-sm btn-primary" id="reportsBtn">
+                <i class="fas fa-chart-bar"></i>
+                דוחות
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 40px;">
+                      <input type="checkbox" id="selectAll">
+                    </th>
+                    <th>מספר</th>
+                    <th>נהג</th>
+                    <th>סוג</th>
+                    <th>סכום</th>
+                    <th>תאריך</th>
+                    <th>סטטוס</th>
+                    <th>קבלה</th>
+                    <th style="width: 150px;">פעולות</th>
+                  </tr>
+                </thead>
+                <tbody id="paymentsTableBody">
+                  <tr>
+                    <td colspan="9" style="text-align: center; padding: 40px;">
+                      <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--primary);"></i>
+                      <p style="margin-top: 10px; color: var(--gray);">טוען תשלומים...</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <!-- PAGINATION -->
+            <div class="pagination-container" id="paginationContainer" style="display: none;">
+              <div class="pagination-info">
+                מציג <span id="showingFrom">1</span>-<span id="showingTo">10</span> מתוך <span id="totalItems">0</span>
+              </div>
+              <div class="pagination" id="pagination"></div>
+              <div class="pagination-size">
+                <select id="pageSize" class="form-control" style="width: auto;">
+                  <option value="10">10</option>
+                  <option value="25" selected>25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+                לדף
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/shortcuts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <script>
+    // ===============================================
+    // 💰 PAYMENTS PAGE LOGIC
+    // ===============================================
+    
+    const PaymentsPage = {
+      currentPage: 1,
+      pageSize: 25,
+      totalPages: 0,
+      payments: [],
+      filters: {},
+      
+      async init() {
+        this.attachEventListeners();
+        await this.loadPayments();
+        await this.loadStats();
+        await this.loadDriversFilter();
+      },
+      
+      attachEventListeners() {
+        // Add payment
+        document.getElementById('addPaymentBtn')?.addEventListener('click', () => this.openAddModal());
+        
+        // Refresh
+        document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadPayments());
+        
+        // Filters
+        document.getElementById('filterStatus')?.addEventListener('change', () => this.applyFilters());
+        document.getElementById('filterType')?.addEventListener('change', () => this.applyFilters());
+        document.getElementById('filterDriver')?.addEventListener('change', () => this.applyFilters());
+        document.getElementById('filterPeriod')?.addEventListener('change', (e) => {
+          const custom = e.target.value === 'custom';
+          document.getElementById('dateRangeGroup').style.display = custom ? 'block' : 'none';
+          document.getElementById('dateRangeGroup2').style.display = custom ? 'block' : 'none';
+          this.applyFilters();
+        });
+        document.getElementById('dateFrom')?.addEventListener('change', () => this.applyFilters());
+        document.getElementById('dateTo')?.addEventListener('change', () => this.applyFilters());
+        document.getElementById('searchQuery')?.addEventListener('input', Utils.debounce(() => this.applyFilters(), 300));
+        
+        // Page size
+        document.getElementById('pageSize')?.addEventListener('change', (e) => {
+          this.pageSize = parseInt(e.target.value);
+          this.currentPage = 1;
+          this.renderTable();
+          this.renderPagination();
+        });
+        
+        // Export & Reports
+        document.getElementById('exportBtn')?.addEventListener('click', () => this.exportPayments());
+        document.getElementById('reportsBtn')?.addEventListener('click', () => this.showReports());
+        
+        // Logout
+        document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+          e.preventDefault();
+          API.logout();
+          window.location.href = 'index.html';
+        });
+      },
+      
+      async loadDriversFilter() {
+        try {
+          const drivers = await API.getDrivers();
+          const select = document.getElementById('filterDriver');
+          
+          drivers.forEach(driver => {
+            const option = document.createElement('option');
+            option.value = driver._id;
+            option.textContent = driver.name;
+            select.appendChild(option);
+          });
+        } catch (error) {
+          console.error('Error loading drivers:', error);
+        }
+      },
+      
+      async loadStats() {
+        try {
+          const payments = await API.getPayments();
+          
+          const totalRevenue = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+          const paid = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + (p.amount || 0), 0);
+          const unpaid = payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + (p.amount || 0), 0);
+          const overdue = payments.filter(p => p.overdueStatus?.isOverdue).length;
+          
+          document.getElementById('totalRevenue').textContent = '₪' + totalRevenue.toLocaleString();
+          document.getElementById('totalPaid').textContent = '₪' + paid.toLocaleString();
+          document.getElementById('totalUnpaid').textContent = '₪' + unpaid.toLocaleString();
+          document.getElementById('overdueCount').textContent = overdue;
+        } catch (error) {
+          console.error('Error loading stats:', error);
+        }
+      },
+      
+      async loadPayments() {
+        try {
+          Utils.showLoading();
+          
+          const response = await API.getPayments(this.filters);
+          this.payments = response.payments || response;
+          
+          this.renderTable();
+          this.renderPagination();
+          
+          document.getElementById('paymentsCount').textContent = this.payments.length;
+        } catch (error) {
+          Utils.showAlert('שגיאה בטעינת תשלומים: ' + error.message, 'error');
+        } finally {
+          Utils.hideLoading();
+        }
+      },
+      
+      renderTable() {
+        const tbody = document.getElementById('paymentsTableBody');
+        const start = (this.currentPage - 1) * this.pageSize;
+        const end = start + this.pageSize;
+        const pagePayments = this.payments.slice(start, end);
+        
+        if (pagePayments.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="9" style="text-align: center; padding: 40px;">
+                <i class="fas fa-money-bill-wave" style="font-size: 48px; color: var(--gray); opacity: 0.3;"></i>
+                <p style="margin-top: 10px; color: var(--gray);">אין תשלומים להצגה</p>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+        
+        tbody.innerHTML = pagePayments.map(payment => `
+          <tr>
+            <td>
+              <input type="checkbox" class="payment-checkbox" data-id="${payment._id}">
+            </td>
+            <td>
+              <strong>#${payment.paymentNumber || payment._id.slice(-6)}</strong>
+            </td>
+            <td>${payment.driverName || '-'}</td>
+            <td>${this.getTypeText(payment.type)}</td>
+            <td>
+              <strong style="color: var(--primary);">₪${(payment.amount || 0).toLocaleString()}</strong>
+            </td>
+            <td>
+              ${Utils.formatDate(payment.date || payment.createdAt)}
+            </td>
+            <td>${this.getStatusBadge(payment.status)}</td>
+            <td>
+              ${payment.receipt?.url ? 
+                `<a href="${payment.receipt.url}" target="_blank" class="btn-icon btn-sm"><i class="fas fa-file-pdf"></i></a>` : 
+                '-'
+              }
+            </td>
+            <td>
+              <div style="display: flex; gap: 5px;">
+                <button class="btn-icon btn-sm" onclick="PaymentsPage.viewPayment('${payment._id}')" title="צפייה">
+                  <i class="fas fa-eye"></i>
+                </button>
+                ${payment.status === 'pending' ? `
+                  <button class="btn-icon btn-sm btn-success" onclick="PaymentsPage.markPaid('${payment._id}')" title="סמן כשולם">
+                    <i class="fas fa-check"></i>
+                  </button>
+                ` : ''}
+                <button class="btn-icon btn-sm" onclick="PaymentsPage.editPayment('${payment._id}')" title="עריכה">
+                  <i class="fas fa-edit"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      },
+      
+      getTypeText(type) {
+        const types = {
+          ride: 'נסיעה',
+          monthly: 'חודשי',
+          commission: 'עמלה',
+          fine: 'קנס',
+          other: 'אחר'
+        };
+        return types[type] || type;
+      },
+      
+      getStatusBadge(status) {
+        const badges = {
+          pending: '<span class="badge badge-warning">ממתין</span>',
+          paid: '<span class="badge badge-success">שולם</span>',
+          overdue: '<span class="badge badge-danger">באיחור</span>',
+          cancelled: '<span class="badge">בוטל</span>'
+        };
+        return badges[status] || '<span class="badge">לא ידוע</span>';
+      },
+      
+      renderPagination() {
+        this.totalPages = Math.ceil(this.payments.length / this.pageSize);
+        const container = document.getElementById('paginationContainer');
+        const pagination = document.getElementById('pagination');
+        
+        if (this.totalPages <= 1) {
+          container.style.display = 'none';
+          return;
+        }
+        
+        container.style.display = 'flex';
+        
+        let html = '';
+        
+        html += `<button class="page-btn" ${this.currentPage === 1 ? 'disabled' : ''} onclick="PaymentsPage.goToPage(${this.currentPage - 1})">
+          <i class="fas fa-chevron-right"></i>
+        </button>`;
+        
+        for (let i = 1; i <= this.totalPages; i++) {
+          if (i === 1 || i === this.totalPages || (i >= this.currentPage - 2 && i <= this.currentPage + 2)) {
+            html += `<button class="page-btn ${i === this.currentPage ? 'active' : ''}" onclick="PaymentsPage.goToPage(${i})">${i}</button>`;
+          } else if (i === this.currentPage - 3 || i === this.currentPage + 3) {
+            html += `<span class="page-dots">...</span>`;
+          }
+        }
+        
+        html += `<button class="page-btn" ${this.currentPage === this.totalPages ? 'disabled' : ''} onclick="PaymentsPage.goToPage(${this.currentPage + 1})">
+          <i class="fas fa-chevron-left"></i>
+        </button>`;
+        
+        pagination.innerHTML = html;
+        
+        const start = (this.currentPage - 1) * this.pageSize + 1;
+        const end = Math.min(this.currentPage * this.pageSize, this.payments.length);
+        document.getElementById('showingFrom').textContent = start;
+        document.getElementById('showingTo').textContent = end;
+        document.getElementById('totalItems').textContent = this.payments.length;
+      },
+      
+      goToPage(page) {
+        this.currentPage = page;
+        this.renderTable();
+        this.renderPagination();
+      },
+      
+      applyFilters() {
+        this.filters = {
+          status: document.getElementById('filterStatus').value,
+          type: document.getElementById('filterType').value,
+          driver: document.getElementById('filterDriver').value,
+          period: document.getElementById('filterPeriod').value,
+          dateFrom: document.getElementById('dateFrom').value,
+          dateTo: document.getElementById('dateTo').value,
+          search: document.getElementById('searchQuery').value
+        };
+        this.currentPage = 1;
+        this.loadPayments();
+      },
+      
+      openAddModal() {
+        Utils.showAlert('פיצ'ר הוספת תשלום יבוא בקרוב!', 'info');
+      },
+      
+      async viewPayment(id) {
+        try {
+          const payment = await API.getPayment(id);
+          const html = `
+            <div class="modal-overlay" onclick="this.remove()">
+              <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 700px;">
+                <div class="modal-header">
+                  <h2><i class="fas fa-file-invoice-dollar"></i> תשלום #${payment.paymentNumber || payment._id.slice(-6)}</h2>
+                  <button class="btn-icon" onclick="this.closest('.modal-overlay').remove()">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <div class="tabs-mini">
+                    <button class="tab-mini-btn active" data-tab="info">פרטים</button>
+                    <button class="tab-mini-btn" data-tab="receipt">קבלה</button>
+                    <button class="tab-mini-btn" data-tab="commission">עמלות</button>
+                  </div>
+                  
+                  <div class="tab-mini-content active" data-content="info">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                      <div><strong>נהג:</strong> ${payment.driverName || '-'}</div>
+                      <div><strong>סכום:</strong> <span style="color: var(--success); font-size: 18px;">₪${(payment.amount || 0).toLocaleString()}</span></div>
+                      <div><strong>סוג:</strong> ${this.getTypeText(payment.type)}</div>
+                      <div><strong>תאריך:</strong> ${Utils.formatDate(payment.date || payment.createdAt)}</div>
+                      <div><strong>סטטוס:</strong> ${this.getStatusBadge(payment.status)}</div>
+                      <div><strong>תאריך פירעון:</strong> ${payment.dueDate ? Utils.formatDate(payment.dueDate) : '-'}</div>
+                    </div>
+                    ${payment.notes ? `<div style="margin-top: 15px;"><strong>הערות:</strong><p>${payment.notes}</p></div>` : ''}
+                    
+                    ${payment.overdueStatus?.isOverdue ? `
+                      <div style="margin-top: 15px; padding: 15px; background: rgba(220, 38, 38, 0.1); border-right: 3px solid var(--danger); border-radius: 5px;">
+                        <strong style="color: var(--danger);">⚠️ באיחור!</strong><br>
+                        <small>איחור של ${payment.overdueStatus.daysOverdue} ימים</small><br>
+                        ${payment.overdueStatus.fineAmount ? `<small>קנס: ₪${payment.overdueStatus.fineAmount}</small>` : ''}
+                      </div>
+                    ` : ''}
+                  </div>
+                  
+                  <div class="tab-mini-content" data-content="receipt">
+                    ${payment.receipt?.url ? `
+                      <div style="text-align: center; margin-bottom: 15px;">
+                        <img src="${payment.receipt.url}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                      </div>
+                      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                        <div>
+                          <strong>הועלה:</strong> ${Utils.formatDate(payment.receipt.uploadedAt)}
+                        </div>
+                        <div>
+                          <strong>גודל:</strong> ${Math.round((payment.receipt.size || 0) / 1024)}KB
+                        </div>
+                      </div>
+                      ${payment.receipt.ocrData ? `
+                        <div style="margin-top: 15px; padding: 15px; background: var(--bg-secondary); border-radius: 8px;">
+                          <h4 style="margin: 0 0 10px 0;"><i class="fas fa-robot"></i> נתונים שחולצו (OCR)</h4>
+                          <div style="display: grid; gap: 5px; font-size: 14px;">
+                            ${payment.receipt.ocrData.amount ? `<div>סכום: ₪${payment.receipt.ocrData.amount}</div>` : ''}
+                            ${payment.receipt.ocrData.date ? `<div>תאריך: ${payment.receipt.ocrData.date}</div>` : ''}
+                            ${payment.receipt.ocrData.businessName ? `<div>שם עסק: ${payment.receipt.ocrData.businessName}</div>` : ''}
+                            ${payment.receipt.ocrData.taxId ? `<div>ח.פ: ${payment.receipt.ocrData.taxId}</div>` : ''}
+                          </div>
+                        </div>
+                      ` : ''}
+                      <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <a href="${payment.receipt.url}" target="_blank" class="btn btn-sm btn-secondary">
+                          <i class="fas fa-download"></i> הורד קבלה
+                        </a>
+                        ${!payment.receipt.ocrData ? `
+                          <button class="btn btn-sm btn-primary" onclick="PaymentsPage.runOCR('${id}')">
+                            <i class="fas fa-robot"></i> הרץ OCR
+                          </button>
+                        ` : ''}
+                      </div>
+                    ` : `
+                      <div style="text-align: center; padding: 40px;">
+                        <i class="fas fa-receipt" style="font-size: 48px; color: var(--gray); opacity: 0.3;"></i>
+                        <p style="margin-top: 10px; color: var(--gray);">לא הועלתה קבלה</p>
+                        <button class="btn btn-primary" onclick="PaymentsPage.uploadReceipt('${id}')" style="margin-top: 15px;">
+                          <i class="fas fa-upload"></i> העלה קבלה
+                        </button>
+                      </div>
+                    `}
+                  </div>
+                  
+                  <div class="tab-mini-content" data-content="commission">
+                    <div style="background: var(--bg-secondary); padding: 15px; border-radius: 8px;">
+                      <h4 style="margin: 0 0 15px 0;">חישוב עמלות</h4>
+                      <div style="display: grid; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between;">
+                          <span>סכום בסיס:</span>
+                          <strong>₪${payment.amount || 0}</strong>
+                        </div>
+                        ${payment.commission ? `
+                          <div style="display: flex; justify-content: space-between; color: var(--warning);">
+                            <span>עמלה (${payment.commission.percentage}%):</span>
+                            <strong>-₪${payment.commission.amount || 0}</strong>
+                          </div>
+                          <hr>
+                          <div style="display: flex; justify-content: space-between; font-size: 18px;">
+                            <strong>לתשלום לנהג:</strong>
+                            <strong style="color: var(--success);">₪${(payment.amount - payment.commission.amount) || 0}</strong>
+                          </div>
+                        ` : '<p style="color: var(--gray);">אין נתוני עמלה</p>'}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                    ${payment.status === 'pending' ? `
+                      <button class="btn btn-success" onclick="PaymentsPage.markPaid('${id}')">
+                        <i class="fas fa-check"></i> סמן כשולם
+                      </button>
+                    ` : ''}
+                    <button class="btn btn-secondary" onclick="PaymentsPage.editPayment('${id}')">
+                      <i class="fas fa-edit"></i> ערוך
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          document.body.insertAdjacentHTML('beforeend', html);
+          
+          document.querySelectorAll('.tab-mini-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+              document.querySelectorAll('.tab-mini-btn').forEach(b => b.classList.remove('active'));
+              document.querySelectorAll('.tab-mini-content').forEach(c => c.classList.remove('active'));
+              this.classList.add('active');
+              document.querySelector(`[data-content="${this.dataset.tab}"]`).classList.add('active');
+            });
+          });
+        } catch (error) {
+          Utils.showAlert('שגיאה: ' + error.message, 'error');
+        }
+      },
+      
+      uploadReceipt(paymentId) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*,application/pdf';
+        input.onchange = async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          
+          try {
+            const formData = new FormData();
+            formData.append('receipt', file);
+            
+            Utils.showAlert('מעלה קבלה...', 'info');
+            await API.uploadReceipt(paymentId, formData);
+            Utils.showAlert('הקבלה הועלתה בהצלחה', 'success');
+            
+            document.querySelector('.modal-overlay')?.remove();
+            await this.viewPayment(paymentId);
+          } catch (error) {
+            Utils.showAlert('שגיאה בהעלאה: ' + error.message, 'error');
+          }
+        };
+        input.click();
+      },
+      
+      async runOCR(paymentId) {
+        try {
+          Utils.showAlert('מריץ OCR...', 'info');
+          const result = await API.runPaymentOCR(paymentId);
+          Utils.showAlert('OCR הושלם בהצלחה', 'success');
+          
+          document.querySelector('.modal-overlay')?.remove();
+          await this.viewPayment(paymentId);
+        } catch (error) {
+          Utils.showAlert('שגיאה ב-OCR: ' + error.message, 'error');
+        }
+      },
+      
+      viewPayment(id) {
+        Utils.showAlert('פיצ'ר צפייה בתשלום יבוא בקרוב!', 'info');
+      },
+      
+      editPayment(id) {
+        Utils.showAlert('פיצ'ר עריכת תשלום יבוא בקרוב!', 'info');
+      },
+      
+      async markPaid(id) {
+        if (!confirm('האם אתה בטוח שברצונך לסמן תשלום זה כשולם?')) return;
+        
+        try {
+          await API.markPaymentPaid(id);
+          Utils.showAlert('התשלום סומן כשולם', 'success');
+          await this.loadPayments();
+          await this.loadStats();
+        } catch (error) {
+          Utils.showAlert('שגיאה: ' + error.message, 'error');
+        }
+      },
+      
+      exportPayments() {
+        try {
+          const data = this.payments.map(p => ({
+            'מספר': p.paymentNumber || p._id.slice(-6),
+            'נהג': p.driverName || '',
+            'סוג': this.getTypeText(p.type),
+            'סכום': p.amount || 0,
+            'תאריך': Utils.formatDate(p.date || p.createdAt),
+            'סטטוס': p.status || '',
+            'הערות': p.notes || ''
+          }));
+          
+          Utils.exportToExcel(data, 'תשלומים_' + new Date().toISOString().split('T')[0]);
+        } catch (error) {
+          Utils.showAlert('שגיאה בייצוא: ' + error.message, 'error');
+        }
+      },
+      
+      showReports() {
+        Utils.showAlert('פיצ'ר דוחות יבוא בקרוב!', 'info');
+      }
+    };
+    
+    // Init
+    document.addEventListener('DOMContentLoaded', () => PaymentsPage.init());
+  </script>
+  
+  <style>
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.2s;
+    }
+    
+    .modal-content {
+      background: var(--bg-primary);
+      border-radius: 12px;
+      max-height: 90vh;
+      overflow-y: auto;
+      width: 90%;
+      animation: slideUp 0.3s;
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .modal-header h2 {
+      margin: 0;
+    }
+    
+    .modal-body {
+      padding: 20px;
+    }
+    
+    .tabs-mini {
+      display: flex;
+      gap: 5px;
+      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+    
+    .tab-mini-btn {
+      padding: 10px 15px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--text-secondary);
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      font-size: 14px;
+    }
+    
+    .tab-mini-btn:hover {
+      color: var(--primary);
+    }
+    
+    .tab-mini-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    
+    .tab-mini-content {
+      display: none;
+    }
+    
+    .tab-mini-content.active {
+      display: block;
+      animation: fadeIn 0.3s;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</body>
+</html>

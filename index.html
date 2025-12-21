@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>התחברות - מערכת ניהול מוניות</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dark-mode.css">
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-box">
+      <div class="login-header">
+        <div class="logo">
+          <i class="fas fa-taxi"></i>
+        </div>
+        <h1>מערכת ניהול מוניות</h1>
+        <p>ממשק ניהול מודרני ומתקדם</p>
+      </div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="password">
+            <i class="fas fa-lock"></i>
+            סיסמה
+          </label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            placeholder="הזן סיסמה"
+            required
+            autofocus
+          >
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="loginBtn">
+          <i class="fas fa-sign-in-alt"></i>
+          התחבר
+        </button>
+      </form>
+
+      <div style="margin-top: 30px; text-align: center; color: var(--gray); font-size: 13px;">
+        <p>גרסה 2.0.0 - Dashboard חדש</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/utils.js"></script>
+  <script>
+    // ===============================================
+    // LOGIN LOGIC
+    // ===============================================
+    
+    const loginForm = document.getElementById('loginForm');
+    const passwordInput = document.getElementById('password');
+    const loginBtn = document.getElementById('loginBtn');
+
+    // Check if already logged in
+    (async () => {
+      if (api.token) {
+        try {
+          await api.getMe();
+          window.location.href = '/dashboard.html';
+        } catch (error) {
+          // Token invalid, stay on login page
+          api.clearToken();
+        }
+      }
+    })();
+
+    // Handle login
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const password = passwordInput.value.trim();
+      
+      if (!password) {
+        Utils.showNotification('נא להזין סיסמה', 'error');
+        return;
+      }
+      
+      // Show loading
+      const stopLoading = Utils.showLoading(loginBtn);
+      
+      try {
+        // Login via API
+        const result = await api.login(password);
+        
+        Utils.showNotification('התחברת בהצלחה!', 'success');
+        
+        // Redirect to dashboard
+        setTimeout(() => {
+          window.location.href = '/dashboard.html';
+        }, 500);
+        
+      } catch (error) {
+        stopLoading();
+        Utils.showNotification('סיסמה שגויה', 'error');
+        passwordInput.value = '';
+        passwordInput.focus();
+      }
+    });
+
+    // Enter key to submit
+    passwordInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        loginForm.dispatchEvent(new Event('submit'));
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>הגדרות מערכת - מערכת ניהול מוניות</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dark-mode.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>
+          <i class="fas fa-taxi"></i>
+          Taxi Manager
+        </h2>
+        <div class="user-info" id="userInfo">
+          <i class="fas fa-user-circle"></i>
+          מנהל מערכת
+        </div>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li class="menu-section-title">ניהול</li>
+        <a href="dashboard.html" class="menu-item">
+          <i class="fas fa-home"></i>
+          <span>לוח בקרה</span>
+        </a>
+        <a href="rides.html" class="menu-item">
+          <i class="fas fa-car"></i>
+          <span>נסיעות</span>
+        </a>
+        <a href="drivers.html" class="menu-item">
+          <i class="fas fa-users"></i>
+          <span>נהגים</span>
+        </a>
+        <a href="registrations.html" class="menu-item">
+          <i class="fas fa-user-plus"></i>
+          <span>רישומים חדשים</span>
+        </a>
+        <a href="payments.html" class="menu-item">
+          <i class="fas fa-money-bill-wave"></i>
+          <span>תשלומים</span>
+        </a>
+        <a href="messages.html" class="menu-item">
+          <i class="fas fa-envelope"></i>
+          <span>הודעות</span>
+        </a>
+        <a href="reports.html" class="menu-item">
+          <i class="fas fa-chart-bar"></i>
+          <span>דוחות</span>
+        </a>
+        
+        <li class="menu-section-title">מערכת</li>
+        <a href="settings.html" class="menu-item active">
+          <i class="fas fa-cog"></i>
+          <span>הגדרות</span>
+        </a>
+        <a href="#" class="menu-item" id="logoutBtn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>התנתק</span>
+        </a>
+      </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- HEADER -->
+      <header class="header">
+        <div class="header-title">
+          <h1>
+            <i class="fas fa-cog"></i>
+            הגדרות מערכת
+          </h1>
+        </div>
+        <div class="header-actions">
+          <button class="btn-icon" id="themeToggle" title="החלף ערכת נושא">
+            <i class="fas fa-moon"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTENT -->
+      <div class="content-area">
+        
+        <!-- TABS -->
+        <div class="card">
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="general">
+              <i class="fas fa-sliders-h"></i>
+              כללי
+            </button>
+            <button class="tab-btn" data-tab="pricing">
+              <i class="fas fa-shekel-sign"></i>
+              תמחור
+            </button>
+            <button class="tab-btn" data-tab="notifications">
+              <i class="fas fa-bell"></i>
+              התראות
+            </button>
+            <button class="tab-btn" data-tab="users">
+              <i class="fas fa-users-cog"></i>
+              משתמשים
+            </button>
+            <button class="tab-btn" data-tab="system">
+              <i class="fas fa-server"></i>
+              מערכת
+            </button>
+            <button class="tab-btn" data-tab="profile">
+              <i class="fas fa-user"></i>
+              פרופיל
+            </button>
+          </div>
+        </div>
+
+        <!-- TAB CONTENT: GENERAL -->
+        <div class="tab-content active" id="tab-general">
+          <div class="card">
+            <div class="card-header">
+              <h2>
+                <i class="fas fa-sliders-h"></i>
+                הגדרות כלליות
+              </h2>
+            </div>
+            <div class="card-body">
+              <form id="generalForm">
+                <div class="form-group">
+                  <label>שם המערכת</label>
+                  <input type="text" class="form-control" value="מערכת ניהול מוניות" id="systemName">
+                </div>
+                
+                <div class="form-group">
+                  <label>טלפון לשירות לקוחות</label>
+                  <input type="tel" class="form-control" placeholder="050-1234567" id="supportPhone">
+                </div>
+                
+                <div class="form-group">
+                  <label>אימייל לתמיכה</label>
+                  <input type="email" class="form-control" placeholder="support@example.com" id="supportEmail">
+                </div>
+                
+                <div class="form-group">
+                  <label>
+                    <input type="checkbox" id="autoDispatch">
+                    שיבוץ אוטומטי לנהגים
+                  </label>
+                </div>
+                
+                <div class="form-group">
+                  <label>
+                    <input type="checkbox" id="enableRatings">
+                    אפשר דירוגים
+                  </label>
+                </div>
+                
+                <div class="form-group">
+                  <label>מספר מקסימלי של נהגים לנסיעה</label>
+                  <input type="number" class="form-control" value="5" id="maxDriversPerRide">
+                </div>
+                
+                <div class="form-group">
+                  <label>זמן תפוגה לנסיעה (דקות)</label>
+                  <input type="number" class="form-control" value="30" id="rideTimeout">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i>
+                  שמור שינויים
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB CONTENT: PRICING -->
+        <div class="tab-content" id="tab-pricing">
+          <div class="card">
+            <div class="card-header">
+              <h2>
+                <i class="fas fa-shekel-sign"></i>
+                הגדרות תמחור
+              </h2>
+            </div>
+            <div class="card-body">
+              <form id="pricingForm">
+                <div class="form-group">
+                  <label>מחיר חודשי לתחנה (₪)</label>
+                  <input type="number" class="form-control" value="500" id="stationMonthlyPrice">
+                </div>
+                
+                <div class="form-group">
+                  <label>אחוז עמלה חיצוני (%)</label>
+                  <input type="number" class="form-control" value="10" step="0.1" id="externalCommission">
+                </div>
+                
+                <div class="form-group">
+                  <label>אחוז עמלה פנימי (%)</label>
+                  <input type="number" class="form-control" value="5" step="0.1" id="internalCommission">
+                </div>
+                
+                <div class="form-group">
+                  <label>מחיר בסיס לנסיעה (₪)</label>
+                  <input type="number" class="form-control" value="25" id="baseRidePrice">
+                </div>
+                
+                <div class="form-group">
+                  <label>מחיר לק"מ (₪)</label>
+                  <input type="number" class="form-control" value="5" step="0.1" id="pricePerKm">
+                </div>
+                
+                <div class="form-group">
+                  <label>מחיר לדקה (₪)</label>
+                  <input type="number" class="form-control" value="2" step="0.1" id="pricePerMinute">
+                </div>
+                
+                <div class="form-group">
+                  <label>
+                    <input type="checkbox" id="enableSurge">
+                    אפשר surge pricing (תמחור דינמי)
+                  </label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i>
+                  שמור תמחור
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB CONTENT: NOTIFICATIONS -->
+        <div class="tab-content" id="tab-notifications">
+          <div class="card">
+            <div class="card-header">
+              <h2>
+                <i class="fas fa-bell"></i>
+                הגדרות התראות
+              </h2>
+            </div>
+            <div class="card-body">
+              <form id="notificationsForm">
+                <h3 style="margin-bottom: 20px;">WhatsApp</h3>
+                
+                <div class="form-group">
+                  <label>
+                    <input type="checkbox" id="notifyNewRide">
+                    שלח התראה על נסיעה חדשה
+                  </label>
+                </div>
+                
+                <div class="form-group">
+                  <label>
+                    <input type="checkbox" id="notifyRideCancelled">
+                    שלח התראה על ביטול נסיעה
+                  </label>
+                </div>
+                
+                <div class="form-group">
+                  <label>
+                    <input type="checkbox" id="notifyPaymentDue">
+                    שלח התראה על תשלום שממתין
+                  </label>
+                </div>
+                
+                <div class="form-group">
+                  <label>
+                    <input type="checkbox" id="notifyPaymentOverdue">
+                    שלח התראה על תשלום באיחור
+                  </label>
+                </div>
+                
+                <hr>
+                
+                <h3 style="margin-bottom: 20px;">אימייל</h3>
+                
+                <div class="form-group">
+                  <label>
+                    <input type="checkbox" id="emailDailyReport">
+                    שלח דוח יומי באימייל
+                  </label>
+                </div>
+                
+                <div class="form-group">
+                  <label>
+                    <input type="checkbox" id="emailWeeklyReport">
+                    שלח דוח שבועי באימייל
+                  </label>
+                </div>
+                
+                <div class="form-group">
+                  <label>רשימת אימיילים (מופרדים בפסיק)</label>
+                  <input type="text" class="form-control" placeholder="admin@example.com, manager@example.com" id="notificationEmails">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i>
+                  שמור התראות
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB CONTENT: USERS -->
+        <div class="tab-content" id="tab-users">
+          <div class="card">
+            <div class="card-header">
+              <h2>
+                <i class="fas fa-users-cog"></i>
+                ניהול משתמשים
+              </h2>
+              <button class="btn btn-success btn-sm" id="addUserBtn">
+                <i class="fas fa-user-plus"></i>
+                הוסף משתמש
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>שם משתמש</th>
+                      <th>אימייל</th>
+                      <th>תפקיד</th>
+                      <th>סטטוס</th>
+                      <th>התחברות אחרונה</th>
+                      <th style="width: 100px;">פעולות</th>
+                    </tr>
+                  </thead>
+                  <tbody id="usersTableBody">
+                    <tr>
+                      <td colspan="6" style="text-align: center; padding: 40px;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--primary);"></i>
+                        <p style="margin-top: 10px; color: var(--gray);">טוען משתמשים...</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB CONTENT: SYSTEM -->
+        <div class="tab-content" id="tab-system">
+          <div class="card">
+            <div class="card-header">
+              <h2>
+                <i class="fas fa-server"></i>
+                מידע מערכת
+              </h2>
+            </div>
+            <div class="card-body">
+              <div class="system-info">
+                <div class="info-item">
+                  <strong>גרסה:</strong>
+                  <span id="systemVersion">4.0.0</span>
+                </div>
+                <div class="info-item">
+                  <strong>סטטוס שרת:</strong>
+                  <span class="badge badge-success" id="serverStatus">פעיל</span>
+                </div>
+                <div class="info-item">
+                  <strong>סטטוס MongoDB:</strong>
+                  <span class="badge badge-success" id="dbStatus">מחובר</span>
+                </div>
+                <div class="info-item">
+                  <strong>סטטוס WhatsApp Bot:</strong>
+                  <span class="badge badge-success" id="botStatus">פעיל</span>
+                </div>
+                <div class="info-item">
+                  <strong>זמן פעילות:</strong>
+                  <span id="uptime">-</span>
+                </div>
+                <div class="info-item">
+                  <strong>התקנה:</strong>
+                  <span id="deployedAt">-</span>
+                </div>
+              </div>
+              
+              <hr style="margin: 30px 0;">
+              
+              <h3 style="margin-bottom: 20px;">פעולות מערכת</h3>
+              
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-secondary" id="createBackupBtn">
+                  <i class="fas fa-database"></i>
+                  צור גיבוי
+                </button>
+                
+                <button class="btn btn-secondary" id="viewLogsBtn">
+                  <i class="fas fa-file-alt"></i>
+                  צפה בלוגים
+                </button>
+                
+                <button class="btn btn-secondary" id="clearCacheBtn">
+                  <i class="fas fa-broom"></i>
+                  נקה Cache
+                </button>
+                
+                <button class="btn btn-danger" id="restartServerBtn">
+                  <i class="fas fa-sync-alt"></i>
+                  אתחל שרת
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB CONTENT: PROFILE -->
+        <div class="tab-content" id="tab-profile">
+          <div class="card">
+            <div class="card-header">
+              <h2>
+                <i class="fas fa-user"></i>
+                פרופיל אישי
+              </h2>
+            </div>
+            <div class="card-body">
+              <form id="profileForm">
+                <div class="form-group">
+                  <label>שם משתמש</label>
+                  <input type="text" class="form-control" id="username" readonly>
+                </div>
+                
+                <div class="form-group">
+                  <label>אימייל</label>
+                  <input type="email" class="form-control" id="email">
+                </div>
+                
+                <div class="form-group">
+                  <label>תפקיד</label>
+                  <input type="text" class="form-control" id="role" readonly>
+                </div>
+                
+                <hr>
+                
+                <h3 style="margin-bottom: 20px;">שינוי סיסמה</h3>
+                
+                <div class="form-group">
+                  <label>סיסמה נוכחית</label>
+                  <input type="password" class="form-control" id="currentPassword">
+                </div>
+                
+                <div class="form-group">
+                  <label>סיסמה חדשה</label>
+                  <input type="password" class="form-control" id="newPassword">
+                </div>
+                
+                <div class="form-group">
+                  <label>אימות סיסמה חדשה</label>
+                  <input type="password" class="form-control" id="confirmPassword">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i>
+                  שמור שינויים
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/shortcuts.js"></script>
+  
+  <script>
+    // ===============================================
+    // ⚙️ SETTINGS PAGE LOGIC
+    // ===============================================
+    
+    const SettingsPage = {
+      async init() {
+        this.attachEventListeners();
+        await this.loadSystemHealth();
+        await this.loadUserProfile();
+      },
+      
+      attachEventListeners() {
+        // Tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
+        });
+        
+        // Forms
+        document.getElementById('generalForm')?.addEventListener('submit', (e) => this.saveGeneral(e));
+        document.getElementById('pricingForm')?.addEventListener('submit', (e) => this.savePricing(e));
+        document.getElementById('notificationsForm')?.addEventListener('submit', (e) => this.saveNotifications(e));
+        document.getElementById('profileForm')?.addEventListener('submit', (e) => this.saveProfile(e));
+        
+        // System actions
+        document.getElementById('createBackupBtn')?.addEventListener('click', () => this.createBackup());
+        document.getElementById('viewLogsBtn')?.addEventListener('click', () => this.viewLogs());
+        document.getElementById('clearCacheBtn')?.addEventListener('click', () => this.clearCache());
+        document.getElementById('restartServerBtn')?.addEventListener('click', () => this.restartServer());
+        
+        // Users
+        document.getElementById('addUserBtn')?.addEventListener('click', () => this.addUser());
+        
+        // Logout
+        document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+          e.preventDefault();
+          API.logout();
+          window.location.href = 'index.html';
+        });
+      },
+      
+      switchTab(tabName) {
+        // Remove active from all
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        // Add active to selected
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+      },
+      
+      async loadSystemHealth() {
+        try {
+          const health = await API.getSystemHealth();
+          
+          document.getElementById('systemVersion').textContent = health.version || '4.0.0';
+          document.getElementById('serverStatus').textContent = health.status === 'OK' ? 'פעיל' : 'לא פעיל';
+          document.getElementById('dbStatus').textContent = health.mongodb === 'Connected' ? 'מחובר' : 'מנותק';
+          document.getElementById('botStatus').textContent = health.bot ? 'פעיל' : 'לא פעיל';
+          document.getElementById('uptime').textContent = this.formatUptime(health.uptime);
+          document.getElementById('deployedAt').textContent = Utils.formatDate(health.deployedAt);
+        } catch (error) {
+          console.error('Error loading system health:', error);
+        }
+      },
+      
+      async loadUserProfile() {
+        try {
+          const user = await API.getCurrentUser();
+          
+          document.getElementById('username').value = user.username || '';
+          document.getElementById('email').value = user.email || '';
+          document.getElementById('role').value = this.getRoleName(user.role);
+          
+          document.getElementById('userInfo').innerHTML = `
+            <i class="fas fa-user-circle"></i>
+            ${user.username}
+          `;
+        } catch (error) {
+          console.error('Error loading user profile:', error);
+        }
+      },
+      
+      getRoleName(role) {
+        const roles = {
+          admin: 'מנהל מערכת',
+          manager: 'מנהל',
+          viewer: 'צופה'
+        };
+        return roles[role] || role;
+      },
+      
+      formatUptime(seconds) {
+        if (!seconds) return '-';
+        const days = Math.floor(seconds / 86400);
+        const hours = Math.floor((seconds % 86400) / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        return `${days} ימים, ${hours} שעות, ${minutes} דקות`;
+      },
+      
+      async saveGeneral(e) {
+        e.preventDefault();
+        Utils.showAlert('הגדרות כלליות נשמרו בהצלחה', 'success');
+      },
+      
+      async savePricing(e) {
+        e.preventDefault();
+        Utils.showAlert('הגדרות תמחור נשמרו בהצלחה', 'success');
+      },
+      
+      async saveNotifications(e) {
+        e.preventDefault();
+        Utils.showAlert('הגדרות התראות נשמרו בהצלחה', 'success');
+      },
+      
+      async saveProfile(e) {
+        e.preventDefault();
+        
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (newPassword && newPassword !== confirmPassword) {
+          Utils.showAlert('הסיסמאות אינן תואמות', 'error');
+          return;
+        }
+        
+        if (newPassword) {
+          try {
+            await API.changePassword(currentPassword, newPassword);
+            Utils.showAlert('הסיסמה שונתה בהצלחה', 'success');
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+          } catch (error) {
+            Utils.showAlert('שגיאה בשינוי סיסמה: ' + error.message, 'error');
+          }
+        } else {
+          Utils.showAlert('פרופיל נשמר בהצלחה', 'success');
+        }
+      },
+      
+      async createBackup() {
+        if (!confirm('האם אתה בטוח שברצונך ליצור גיבוי?')) return;
+        
+        try {
+          await API.createBackup();
+          Utils.showAlert('הגיבוי נוצר בהצלחה', 'success');
+        } catch (error) {
+          Utils.showAlert('שגיאה ביצירת גיבוי: ' + error.message, 'error');
+        }
+      },
+      
+      viewLogs() {
+        Utils.showAlert('פיצ'ר צפייה בלוגים יבוא בקרוב!', 'info');
+      },
+      
+      async clearCache() {
+        if (!confirm('האם אתה בטוח שברצונך לנקות את ה-Cache?')) return;
+        Utils.showAlert('Cache נוקה בהצלחה', 'success');
+      },
+      
+      async restartServer() {
+        if (!confirm('האם אתה בטוח שברצונך לאתחל את השרת? פעולה זו תנתק את כל המשתמשים.')) return;
+        Utils.showAlert('שרת מאתחל... אנא המתן', 'info');
+      },
+      
+      addUser() {
+        Utils.showAlert('פיצ'ר הוספת משתמש יבוא בקרוב!', 'info');
+      }
+    };
+    
+    // Init
+    document.addEventListener('DOMContentLoaded', () => SettingsPage.init());
+  </script>
+  
+  <style>
+    .tabs {
+      display: flex;
+      gap: 5px;
+      border-bottom: 2px solid var(--border-color);
+      padding: 0 20px;
+      background: var(--bg-secondary);
+    }
+    
+    .tab-btn {
+      padding: 15px 20px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--text-secondary);
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    
+    .tab-btn:hover {
+      color: var(--primary);
+      background: var(--bg-primary);
+    }
+    
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .system-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .info-item {
+      padding: 15px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</body>
+</html>

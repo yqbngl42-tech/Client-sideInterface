@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ניהול נהגים - מערכת ניהול מוניות</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dark-mode.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>
+          <i class="fas fa-taxi"></i>
+          Taxi Manager
+        </h2>
+        <div class="user-info" id="userInfo">
+          <i class="fas fa-user-circle"></i>
+          מנהל מערכת
+        </div>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li class="menu-section-title">ניהול</li>
+        <a href="dashboard.html" class="menu-item">
+          <i class="fas fa-home"></i>
+          <span>לוח בקרה</span>
+        </a>
+        <a href="rides.html" class="menu-item">
+          <i class="fas fa-car"></i>
+          <span>נסיעות</span>
+        </a>
+        <a href="drivers.html" class="menu-item active">
+          <i class="fas fa-users"></i>
+          <span>נהגים</span>
+        </a>
+        <a href="registrations.html" class="menu-item">
+          <i class="fas fa-user-plus"></i>
+          <span>רישומים חדשים</span>
+        </a>
+        <a href="payments.html" class="menu-item">
+          <i class="fas fa-money-bill-wave"></i>
+          <span>תשלומים</span>
+        </a>
+        
+        <li class="menu-section-title">מערכת</li>
+        <a href="settings.html" class="menu-item">
+          <i class="fas fa-cog"></i>
+          <span>הגדרות</span>
+        </a>
+        <a href="#" class="menu-item" id="logoutBtn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>התנתק</span>
+        </a>
+      </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- HEADER -->
+      <header class="header">
+        <div class="header-title">
+          <h1>
+            <i class="fas fa-users"></i>
+            ניהול נהגים
+          </h1>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-success" id="addDriverBtn">
+            <i class="fas fa-user-plus"></i>
+            הוסף נהג
+          </button>
+          <button class="btn-icon" id="themeToggle" title="החלף ערכת נושא">
+            <i class="fas fa-moon"></i>
+          </button>
+          <button class="btn-icon" title="רענן" id="refreshBtn">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTENT -->
+      <div class="content-area">
+        
+        <!-- STATS -->
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 20px;">
+          <div class="stat-card">
+            <div class="stat-info">
+              <h3>סה"כ נהגים</h3>
+              <div class="stat-value" id="totalDrivers">-</div>
+            </div>
+            <div class="stat-icon primary">
+              <i class="fas fa-users"></i>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-info">
+              <h3>נהגים פעילים</h3>
+              <div class="stat-value" id="activeDrivers">-</div>
+            </div>
+            <div class="stat-icon success">
+              <i class="fas fa-user-check"></i>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-info">
+              <h3>נהגים חסומים</h3>
+              <div class="stat-value" id="blockedDrivers">-</div>
+            </div>
+            <div class="stat-icon danger">
+              <i class="fas fa-user-lock"></i>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-info">
+              <h3>נהגים זמינים</h3>
+              <div class="stat-value" id="availableDrivers">-</div>
+            </div>
+            <div class="stat-icon warning">
+              <i class="fas fa-user-clock"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- FILTERS -->
+        <div class="card">
+          <div class="card-header">
+            <h2>
+              <i class="fas fa-filter"></i>
+              סינונים וחיפוש
+            </h2>
+          </div>
+          <div class="card-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+              <div class="form-group">
+                <label>סטטוס</label>
+                <select id="filterStatus" class="form-control">
+                  <option value="">הכל</option>
+                  <option value="active">פעיל</option>
+                  <option value="available">זמין</option>
+                  <option value="busy">עסוק</option>
+                  <option value="offline">לא מחובר</option>
+                  <option value="blocked">חסום</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label>אזור עבודה</label>
+                <select id="filterRegion" class="form-control">
+                  <option value="">הכל</option>
+                  <option value="north">צפון</option>
+                  <option value="center">מרכז</option>
+                  <option value="south">דרום</option>
+                  <option value="jerusalem">ירושלים</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label>דירוג</label>
+                <select id="filterRating" class="form-control">
+                  <option value="">הכל</option>
+                  <option value="5">⭐⭐⭐⭐⭐</option>
+                  <option value="4">⭐⭐⭐⭐</option>
+                  <option value="3">⭐⭐⭐</option>
+                  <option value="2">⭐⭐</option>
+                  <option value="1">⭐</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label>חיפוש</label>
+                <input type="text" id="searchQuery" class="form-control" placeholder="שם, טלפון, ת.ז...">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DRIVERS TABLE -->
+        <div class="card">
+          <div class="card-header">
+            <h2>
+              <i class="fas fa-list"></i>
+              רשימת נהגים
+              <span class="badge" id="driversCount">0</span>
+            </h2>
+            <div style="display: flex; gap: 10px;">
+              <button class="btn btn-sm btn-secondary" id="exportBtn">
+                <i class="fas fa-file-excel"></i>
+                ייצא
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 40px;">
+                      <input type="checkbox" id="selectAll">
+                    </th>
+                    <th>שם</th>
+                    <th>טלפון</th>
+                    <th>מספר רכב</th>
+                    <th>אזור</th>
+                    <th>דירוג</th>
+                    <th>נסיעות</th>
+                    <th>סטטוס</th>
+                    <th style="width: 150px;">פעולות</th>
+                  </tr>
+                </thead>
+                <tbody id="driversTableBody">
+                  <tr>
+                    <td colspan="9" style="text-align: center; padding: 40px;">
+                      <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--primary);"></i>
+                      <p style="margin-top: 10px; color: var(--gray);">טוען נהגים...</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <!-- PAGINATION -->
+            <div class="pagination-container" id="paginationContainer" style="display: none;">
+              <div class="pagination-info">
+                מציג <span id="showingFrom">1</span>-<span id="showingTo">10</span> מתוך <span id="totalItems">0</span>
+              </div>
+              <div class="pagination" id="pagination"></div>
+              <div class="pagination-size">
+                <select id="pageSize" class="form-control" style="width: auto;">
+                  <option value="10">10</option>
+                  <option value="25" selected>25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+                לדף
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/shortcuts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <script>
+    // ===============================================
+    // 👥 DRIVERS PAGE LOGIC
+    // ===============================================
+    
+    const DriversPage = {
+      currentPage: 1,
+      pageSize: 25,
+      totalPages: 0,
+      drivers: [],
+      filters: {},
+      
+      async init() {
+        this.attachEventListeners();
+        await this.loadDrivers();
+        await this.loadStats();
+      },
+      
+      attachEventListeners() {
+        // Add driver
+        document.getElementById('addDriverBtn')?.addEventListener('click', () => this.openAddModal());
+        
+        // Refresh
+        document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadDrivers());
+        
+        // Filters
+        document.getElementById('filterStatus')?.addEventListener('change', () => this.applyFilters());
+        document.getElementById('filterRegion')?.addEventListener('change', () => this.applyFilters());
+        document.getElementById('filterRating')?.addEventListener('change', () => this.applyFilters());
+        document.getElementById('searchQuery')?.addEventListener('input', Utils.debounce(() => this.applyFilters(), 300));
+        
+        // Page size
+        document.getElementById('pageSize')?.addEventListener('change', (e) => {
+          this.pageSize = parseInt(e.target.value);
+          this.currentPage = 1;
+          this.loadDrivers();
+        });
+        
+        // Export
+        document.getElementById('exportBtn')?.addEventListener('click', () => this.exportDrivers());
+        
+        // Logout
+        document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+          e.preventDefault();
+          API.logout();
+          window.location.href = 'index.html';
+        });
+      },
+      
+      async loadStats() {
+        try {
+          const drivers = await API.getDrivers();
+          
+          const total = drivers.length;
+          const active = drivers.filter(d => d.status === 'active').length;
+          const blocked = drivers.filter(d => d.status === 'blocked').length;
+          const available = drivers.filter(d => d.status === 'available').length;
+          
+          document.getElementById('totalDrivers').textContent = total;
+          document.getElementById('activeDrivers').textContent = active;
+          document.getElementById('blockedDrivers').textContent = blocked;
+          document.getElementById('availableDrivers').textContent = available;
+        } catch (error) {
+          console.error('Error loading stats:', error);
+        }
+      },
+      
+      async loadDrivers() {
+        try {
+          Utils.showLoading();
+          
+          const response = await API.getDrivers(this.filters);
+          this.drivers = response.drivers || response;
+          
+          this.renderTable();
+          this.renderPagination();
+          
+          document.getElementById('driversCount').textContent = this.drivers.length;
+        } catch (error) {
+          Utils.showAlert('שגיאה בטעינת נהגים: ' + error.message, 'error');
+        } finally {
+          Utils.hideLoading();
+        }
+      },
+      
+      renderTable() {
+        const tbody = document.getElementById('driversTableBody');
+        const start = (this.currentPage - 1) * this.pageSize;
+        const end = start + this.pageSize;
+        const pageDrivers = this.drivers.slice(start, end);
+        
+        if (pageDrivers.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="9" style="text-align: center; padding: 40px;">
+                <i class="fas fa-users" style="font-size: 48px; color: var(--gray); opacity: 0.3;"></i>
+                <p style="margin-top: 10px; color: var(--gray);">אין נהגים להצגה</p>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+        
+        tbody.innerHTML = pageDrivers.map(driver => `
+          <tr>
+            <td>
+              <input type="checkbox" class="driver-checkbox" data-id="${driver._id}">
+            </td>
+            <td>
+              <strong>${driver.name}</strong>
+              ${driver.driverId ? `<br><small style="color: var(--gray);">${driver.driverId}</small>` : ''}
+            </td>
+            <td>
+              <a href="tel:${driver.phone}">${driver.phone}</a>
+            </td>
+            <td>${driver.vehicleNumber || '-'}</td>
+            <td>${driver.workArea || '-'}</td>
+            <td>
+              ${this.renderRating(driver.rating?.average || 0)}
+              <small style="color: var(--gray);">(${driver.rating?.count || 0})</small>
+            </td>
+            <td>${driver.statistics?.completedRides || 0}</td>
+            <td>${Utils.getStatusBadge(driver.status || 'active')}</td>
+            <td>
+              <div style="display: flex; gap: 5px;">
+                <button class="btn-icon btn-sm" onclick="DriversPage.viewDriver('${driver._id}')" title="צפייה">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn-icon btn-sm" onclick="DriversPage.editDriver('${driver._id}')" title="עריכה">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-icon btn-sm btn-danger" onclick="DriversPage.toggleBlock('${driver._id}', '${driver.status}')" title="${driver.status === 'blocked' ? 'בטל חסימה' : 'חסום'}">
+                  <i class="fas fa-${driver.status === 'blocked' ? 'unlock' : 'lock'}"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      },
+      
+      renderRating(rating) {
+        const stars = Math.round(rating);
+        let html = '';
+        for (let i = 1; i <= 5; i++) {
+          html += `<i class="fas fa-star" style="color: ${i <= stars ? '#fbbf24' : '#e5e7eb'};"></i>`;
+        }
+        return html;
+      },
+      
+      renderPagination() {
+        this.totalPages = Math.ceil(this.drivers.length / this.pageSize);
+        const container = document.getElementById('paginationContainer');
+        const pagination = document.getElementById('pagination');
+        
+        if (this.totalPages <= 1) {
+          container.style.display = 'none';
+          return;
+        }
+        
+        container.style.display = 'flex';
+        
+        let html = '';
+        
+        // Previous
+        html += `<button class="page-btn" ${this.currentPage === 1 ? 'disabled' : ''} onclick="DriversPage.goToPage(${this.currentPage - 1})">
+          <i class="fas fa-chevron-right"></i>
+        </button>`;
+        
+        // Pages
+        for (let i = 1; i <= this.totalPages; i++) {
+          if (i === 1 || i === this.totalPages || (i >= this.currentPage - 2 && i <= this.currentPage + 2)) {
+            html += `<button class="page-btn ${i === this.currentPage ? 'active' : ''}" onclick="DriversPage.goToPage(${i})">${i}</button>`;
+          } else if (i === this.currentPage - 3 || i === this.currentPage + 3) {
+            html += `<span class="page-dots">...</span>`;
+          }
+        }
+        
+        // Next
+        html += `<button class="page-btn" ${this.currentPage === this.totalPages ? 'disabled' : ''} onclick="DriversPage.goToPage(${this.currentPage + 1})">
+          <i class="fas fa-chevron-left"></i>
+        </button>`;
+        
+        pagination.innerHTML = html;
+        
+        // Update info
+        const start = (this.currentPage - 1) * this.pageSize + 1;
+        const end = Math.min(this.currentPage * this.pageSize, this.drivers.length);
+        document.getElementById('showingFrom').textContent = start;
+        document.getElementById('showingTo').textContent = end;
+        document.getElementById('totalItems').textContent = this.drivers.length;
+      },
+      
+      goToPage(page) {
+        this.currentPage = page;
+        this.renderTable();
+        this.renderPagination();
+      },
+      
+      applyFilters() {
+        this.filters = {
+          status: document.getElementById('filterStatus').value,
+          region: document.getElementById('filterRegion').value,
+          rating: document.getElementById('filterRating').value,
+          search: document.getElementById('searchQuery').value
+        };
+        this.currentPage = 1;
+        this.loadDrivers();
+      },
+      
+      openAddModal() {
+        Utils.showAlert('פיצ'ר הוספת נהג יבוא בקרוב!', 'info');
+      },
+      
+      async viewDriver(id) {
+        try {
+          const driver = await API.getDriver(id);
+          const html = `
+            <div class="modal-overlay" onclick="this.remove()">
+              <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 800px;">
+                <div class="modal-header">
+                  <h2><i class="fas fa-user"></i> ${driver.name}</h2>
+                  <button class="btn-icon" onclick="this.closest('.modal-overlay').remove()">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <div class="tabs-mini">
+                    <button class="tab-mini-btn active" data-tab="info">מידע</button>
+                    <button class="tab-mini-btn" data-tab="notes">הערות (${driver.notes?.length || 0})</button>
+                    <button class="tab-mini-btn" data-tab="history">היסטוריה</button>
+                    <button class="tab-mini-btn" data-tab="documents">מסמכים</button>
+                    <button class="tab-mini-btn" data-tab="stats">סטטיסטיקות</button>
+                  </div>
+                  
+                  <div class="tab-mini-content active" data-content="info">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                      <div><strong>טלפון:</strong> ${driver.phone}</div>
+                      <div><strong>ת.ז:</strong> ${driver.idNumber || '-'}</div>
+                      <div><strong>רישיון:</strong> ${driver.licenseNumber || '-'}</div>
+                      <div><strong>רכב:</strong> ${driver.vehicleNumber || '-'}</div>
+                      <div><strong>אזור:</strong> ${driver.workArea || '-'}</div>
+                      <div><strong>סטטוס:</strong> ${Utils.getStatusBadge(driver.status)}</div>
+                      <div><strong>דירוג:</strong> ${this.renderRating(driver.rating?.average || 0)}</div>
+                      <div><strong>נסיעות:</strong> ${driver.statistics?.completedRides || 0}</div>
+                    </div>
+                  </div>
+                  
+                  <div class="tab-mini-content" data-content="notes">
+                    <div style="max-height: 300px; overflow-y: auto;">
+                      ${(driver.notes || []).map(note => `
+                        <div style="padding: 10px; background: var(--bg-secondary); border-radius: 5px; margin-bottom: 10px;">
+                          <strong>${note.createdBy}</strong> - ${Utils.formatDate(note.createdAt)}
+                          <p style="margin: 5px 0 0 0;">${note.text}</p>
+                        </div>
+                      `).join('') || '<p style="text-align: center; color: var(--gray);">אין הערות</p>'}
+                    </div>
+                    <div style="margin-top: 15px;">
+                      <textarea class="form-control" id="newNote" placeholder="הערה חדשה..." rows="2"></textarea>
+                      <button class="btn btn-sm btn-primary" onclick="DriversPage.addNote('${id}')" style="margin-top: 10px;">
+                        <i class="fas fa-plus"></i> הוסף הערה
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div class="tab-mini-content" data-content="history">
+                    <div style="max-height: 300px; overflow-y: auto;">
+                      ${(driver.statusHistory || []).map(h => `
+                        <div style="padding: 10px; border-right: 3px solid var(--primary); margin-bottom: 10px;">
+                          <strong>${Utils.formatDate(h.changedAt)}</strong><br>
+                          ${h.from} → ${h.to}<br>
+                          <small style="color: var(--gray);">על ידי: ${h.changedBy}</small>
+                          ${h.reason ? `<br><small>סיבה: ${h.reason}</small>` : ''}
+                        </div>
+                      `).join('') || '<p style="text-align: center; color: var(--gray);">אין היסטוריה</p>'}
+                    </div>
+                  </div>
+                  
+                  <div class="tab-mini-content" data-content="documents">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                      ${(driver.documents || []).map(doc => `
+                        <div style="padding: 15px; background: var(--bg-secondary); border-radius: 5px;">
+                          <h4 style="margin: 0 0 10px 0;">${doc.type}</h4>
+                          <div style="display: flex; align-items: center; gap: 10px;">
+                            ${doc.verified ? 
+                              '<span class="badge badge-success"><i class="fas fa-check"></i> מאומת</span>' : 
+                              '<span class="badge badge-warning"><i class="fas fa-clock"></i> ממתין</span>'}
+                            <a href="${doc.url}" target="_blank" class="btn-icon btn-sm">
+                              <i class="fas fa-download"></i>
+                            </a>
+                          </div>
+                          <small style="color: var(--gray);">תוקף: ${Utils.formatDate(doc.expiryDate)}</small>
+                        </div>
+                      `).join('') || '<p style="text-align: center; color: var(--gray);">אין מסמכים</p>'}
+                    </div>
+                    <button class="btn btn-sm btn-success" onclick="DriversPage.uploadDocument('${id}')" style="margin-top: 15px;">
+                      <i class="fas fa-upload"></i> העלה מסמך
+                    </button>
+                  </div>
+                  
+                  <div class="tab-mini-content" data-content="stats">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                      <div class="stat-box">
+                        <h4>נסיעות שהושלמו</h4>
+                        <div class="stat-number">${driver.statistics?.completedRides || 0}</div>
+                      </div>
+                      <div class="stat-box">
+                        <h4>אחוז הצלחה</h4>
+                        <div class="stat-number">${driver.statistics?.successRate || 0}%</div>
+                      </div>
+                      <div class="stat-box">
+                        <h4>הכנסות כוללות</h4>
+                        <div class="stat-number">₪${(driver.statistics?.totalEarnings || 0).toLocaleString()}</div>
+                      </div>
+                      <div class="stat-box">
+                        <h4>ממוצע דירוג</h4>
+                        <div class="stat-number">${(driver.rating?.average || 0).toFixed(1)}⭐</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          document.body.insertAdjacentHTML('beforeend', html);
+          
+          // Attach tab switching
+          document.querySelectorAll('.tab-mini-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+              document.querySelectorAll('.tab-mini-btn').forEach(b => b.classList.remove('active'));
+              document.querySelectorAll('.tab-mini-content').forEach(c => c.classList.remove('active'));
+              this.classList.add('active');
+              document.querySelector(`[data-content="${this.dataset.tab}"]`).classList.add('active');
+            });
+          });
+        } catch (error) {
+          Utils.showAlert('שגיאה: ' + error.message, 'error');
+        }
+      },
+      
+      async addNote(driverId) {
+        const text = document.getElementById('newNote').value;
+        if (!text.trim()) return;
+        
+        try {
+          await API.addDriverNote(driverId, text);
+          Utils.showAlert('הערה נוספה', 'success');
+          document.querySelector('.modal-overlay').remove();
+          await this.viewDriver(driverId);
+        } catch (error) {
+          Utils.showAlert('שגיאה: ' + error.message, 'error');
+        }
+      },
+      
+      uploadDocument(driverId) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*,application/pdf';
+        input.onchange = async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          
+          try {
+            const formData = new FormData();
+            formData.append('document', file);
+            formData.append('type', prompt('סוג מסמך (רישיון/ביטוח/תעודת זהות):') || 'other');
+            
+            await API.uploadDriverDocument(driverId, formData);
+            Utils.showAlert('מסמך הועלה בהצלחה', 'success');
+            document.querySelector('.modal-overlay').remove();
+            await this.viewDriver(driverId);
+          } catch (error) {
+            Utils.showAlert('שגיאה בהעלאה: ' + error.message, 'error');
+          }
+        };
+        input.click();
+      },
+      
+      editDriver(id) {
+        Utils.showAlert('פיצ'ר עריכת נהג יבוא בקרוב!', 'info');
+      },
+      
+      async toggleBlock(id, currentStatus) {
+        const newStatus = currentStatus === 'blocked' ? 'active' : 'blocked';
+        const action = newStatus === 'blocked' ? 'לחסום' : 'לבטל חסימה';
+        
+        if (!confirm(`האם אתה בטוח שברצונך ${action} נהג זה?`)) return;
+        
+        try {
+          await API.updateDriver(id, { status: newStatus });
+          Utils.showAlert(`הנהג ${newStatus === 'blocked' ? 'נחסם' : 'שוחרר'} בהצלחה`, 'success');
+          await this.loadDrivers();
+          await this.loadStats();
+        } catch (error) {
+          Utils.showAlert('שגיאה: ' + error.message, 'error');
+        }
+      },
+      
+      exportDrivers() {
+        try {
+          const data = this.drivers.map(d => ({
+            'שם': d.name,
+            'טלפון': d.phone,
+            'מספר רכב': d.vehicleNumber || '',
+            'אזור': d.workArea || '',
+            'דירוג': d.rating?.average || 0,
+            'נסיעות': d.statistics?.completedRides || 0,
+            'סטטוס': d.status || 'active'
+          }));
+          
+          Utils.exportToExcel(data, 'נהגים_' + new Date().toISOString().split('T')[0]);
+        } catch (error) {
+          Utils.showAlert('שגיאה בייצוא: ' + error.message, 'error');
+        }
+      }
+    };
+    
+    // Init
+    document.addEventListener('DOMContentLoaded', () => DriversPage.init());
+  </script>
+  
+  <style>
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.2s;
+    }
+    
+    .modal-content {
+      background: var(--bg-primary);
+      border-radius: 12px;
+      max-height: 90vh;
+      overflow-y: auto;
+      width: 90%;
+      max-width: 600px;
+      animation: slideUp 0.3s;
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .modal-header h2 {
+      margin: 0;
+    }
+    
+    .modal-body {
+      padding: 20px;
+    }
+    
+    .tabs-mini {
+      display: flex;
+      gap: 5px;
+      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+    
+    .tab-mini-btn {
+      padding: 10px 15px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--text-secondary);
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      font-size: 14px;
+    }
+    
+    .tab-mini-btn:hover {
+      color: var(--primary);
+    }
+    
+    .tab-mini-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    
+    .tab-mini-content {
+      display: none;
+    }
+    
+    .tab-mini-content.active {
+      display: block;
+      animation: fadeIn 0.3s;
+    }
+    
+    .stat-box {
+      padding: 15px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      text-align: center;
+    }
+    
+    .stat-box h4 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    .stat-number {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--primary);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</body>
+</html>

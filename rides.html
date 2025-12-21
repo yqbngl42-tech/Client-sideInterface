@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ניהול נסיעות - מערכת ניהול מוניות</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dark-mode.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2><i class="fas fa-taxi"></i> Taxi Manager</h2>
+        <div class="user-info"><i class="fas fa-user-circle"></i> מנהל מערכת</div>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="menu-section-title">ניהול</li>
+        <a href="dashboard.html" class="menu-item"><i class="fas fa-home"></i><span>לוח בקרה</span></a>
+        <a href="rides.html" class="menu-item active"><i class="fas fa-car"></i><span>נסיעות</span></a>
+        <a href="drivers.html" class="menu-item"><i class="fas fa-users"></i><span>נהגים</span></a>
+        <a href="registrations.html" class="menu-item"><i class="fas fa-user-plus"></i><span>רישומים חדשים</span></a>
+        <a href="payments.html" class="menu-item"><i class="fas fa-money-bill-wave"></i><span>תשלומים</span></a>
+        <a href="messages.html" class="menu-item"><i class="fas fa-envelope"></i><span>הודעות</span></a>
+        <a href="reports.html" class="menu-item"><i class="fas fa-chart-bar"></i><span>דוחות</span></a>
+        <li class="menu-section-title">מערכת</li>
+        <a href="settings.html" class="menu-item"><i class="fas fa-cog"></i><span>הגדרות</span></a>
+        <a href="#" class="menu-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>התנתק</span></a>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <div class="header-title">
+          <h1><i class="fas fa-car"></i> ניהול נסיעות</h1>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary" id="createRideBtn"><i class="fas fa-plus"></i> נסיעה חדשה</button>
+          <button class="btn-icon" id="themeToggle"><i class="fas fa-moon"></i></button>
+          <button class="btn-icon" id="refreshBtn"><i class="fas fa-sync-alt"></i></button>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-filter"></i> סינונים</h2>
+          </div>
+          <div class="card-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+              <div class="form-group">
+                <label>סטטוס</label>
+                <select id="filterStatus" class="form-control">
+                  <option value="">הכל</option>
+                  <option value="created">נוצר</option>
+                  <option value="sent">נשלח</option>
+                  <option value="locked">נעול</option>
+                  <option value="assigned">שובץ</option>
+                  <option value="approved">אושר</option>
+                  <option value="enroute">בדרך</option>
+                  <option value="arrived">הגיע</option>
+                  <option value="finished">הסתיים</option>
+                  <option value="cancelled">בוטל</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>נהג</label>
+                <select id="filterDriver" class="form-control">
+                  <option value="">הכל</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>חיפוש</label>
+                <input type="text" id="searchQuery" class="form-control" placeholder="נוסע, יעד...">
+              </div>
+              <div class="form-group">
+                <label>מתאריך</label>
+                <input type="date" id="dateFrom" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>עד תאריך</label>
+                <input type="date" id="dateTo" class="form-control">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-list"></i> רשימת נסיעות <span class="badge" id="ridesCount">0</span></h2>
+            <div style="display: flex; gap: 10px;">
+              <button class="btn btn-sm btn-secondary" id="bulkActionsBtn">
+                <i class="fas fa-tasks"></i> פעולות מרובות
+              </button>
+              <button class="btn btn-sm btn-secondary" id="exportBtn">
+                <i class="fas fa-file-excel"></i> ייצא
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 40px;"><input type="checkbox" id="selectAll"></th>
+                    <th>מספר</th>
+                    <th>נוסע</th>
+                    <th>יעד</th>
+                    <th>נהג</th>
+                    <th>זמן</th>
+                    <th>סטטוס</th>
+                    <th style="width: 200px;">פעולות</th>
+                  </tr>
+                </thead>
+                <tbody id="ridesTableBody">
+                  <tr>
+                    <td colspan="8" style="text-align: center; padding: 40px;">
+                      <i class="fas fa-spinner fa-spin" style="font-size: 24px;"></i>
+                      <p style="margin-top: 10px;">טוען נסיעות...</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination-container" id="paginationContainer" style="display: none;">
+              <div class="pagination-info">
+                מציג <span id="showingFrom">1</span>-<span id="showingTo">10</span> מתוך <span id="totalItems">0</span>
+              </div>
+              <div class="pagination" id="pagination"></div>
+              <div class="pagination-size">
+                <select id="pageSize" class="form-control" style="width: auto;">
+                  <option value="10">10</option>
+                  <option value="25" selected>25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+                לדף
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/shortcuts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <script>
+    const RidesPage = {
+      currentPage: 1,
+      pageSize: 25,
+      rides: [],
+      filters: {},
+      
+      async init() {
+        this.attachEventListeners();
+        await this.loadRides();
+        await this.loadDriversFilter();
+      },
+      
+      attachEventListeners() {
+        document.getElementById('createRideBtn')?.addEventListener('click', () => this.createRide());
+        document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadRides());
+        
+        document.getElementById('filterStatus')?.addEventListener('change', () => this.applyFilters());
+        document.getElementById('filterDriver')?.addEventListener('change', () => this.applyFilters());
+        document.getElementById('searchQuery')?.addEventListener('input', Utils.debounce(() => this.applyFilters(), 300));
+        document.getElementById('dateFrom')?.addEventListener('change', () => this.applyFilters());
+        document.getElementById('dateTo')?.addEventListener('change', () => this.applyFilters());
+        
+        document.getElementById('pageSize')?.addEventListener('change', (e) => {
+          this.pageSize = parseInt(e.target.value);
+          this.currentPage = 1;
+          this.renderTable();
+          this.renderPagination();
+        });
+        
+        document.getElementById('bulkActionsBtn')?.addEventListener('click', () => this.showBulkActions());
+        document.getElementById('exportBtn')?.addEventListener('click', () => this.exportRides());
+        
+        document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+          e.preventDefault();
+          API.logout();
+          window.location.href = 'index.html';
+        });
+      },
+      
+      async loadDriversFilter() {
+        try {
+          const drivers = await API.getDrivers();
+          const select = document.getElementById('filterDriver');
+          drivers.forEach(driver => {
+            const option = document.createElement('option');
+            option.value = driver._id;
+            option.textContent = driver.name;
+            select.appendChild(option);
+          });
+        } catch (error) {
+          console.error('Error loading drivers:', error);
+        }
+      },
+      
+      async loadRides() {
+        try {
+          Utils.showLoading();
+          const response = await API.getRides(this.filters);
+          this.rides = response.rides || response;
+          this.renderTable();
+          this.renderPagination();
+          document.getElementById('ridesCount').textContent = this.rides.length;
+        } catch (error) {
+          Utils.showAlert('שגיאה בטעינת נסיעות: ' + error.message, 'error');
+        } finally {
+          Utils.hideLoading();
+        }
+      },
+      
+      renderTable() {
+        const tbody = document.getElementById('ridesTableBody');
+        const start = (this.currentPage - 1) * this.pageSize;
+        const end = start + this.pageSize;
+        const pageRides = this.rides.slice(start, end);
+        
+        if (pageRides.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">אין נסיעות</td></tr>';
+          return;
+        }
+        
+        tbody.innerHTML = pageRides.map(ride => `
+          <tr>
+            <td><input type="checkbox" class="ride-checkbox" data-id="${ride._id}"></td>
+            <td><strong>#${ride.rideNumber || ride._id.slice(-6)}</strong></td>
+            <td>${ride.passenger?.name || '-'}</td>
+            <td>${ride.destination || '-'}</td>
+            <td>${ride.assignedDriver?.name || '-'}</td>
+            <td>${Utils.formatTime(ride.createdAt)}</td>
+            <td>${Utils.getStatusBadge(ride.status)}</td>
+            <td>
+              <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                <button class="btn-icon btn-sm" onclick="RidesPage.viewRide('${ride._id}')" title="צפייה">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn-icon btn-sm" onclick="RidesPage.editRide('${ride._id}')" title="עריכה">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-icon btn-sm btn-warning" onclick="RidesPage.redispatch('${ride._id}')" title="Redispatch">
+                  <i class="fas fa-redo"></i>
+                </button>
+                <button class="btn-icon btn-sm" onclick="RidesPage.toggleLock('${ride._id}', '${ride.locked}')" title="${ride.locked ? 'פתח' : 'נעל'}">
+                  <i class="fas fa-${ride.locked ? 'unlock' : 'lock'}"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      },
+      
+      renderPagination() {
+        const totalPages = Math.ceil(this.rides.length / this.pageSize);
+        const container = document.getElementById('paginationContainer');
+        const pagination = document.getElementById('pagination');
+        
+        if (totalPages <= 1) {
+          container.style.display = 'none';
+          return;
+        }
+        
+        container.style.display = 'flex';
+        
+        let html = `<button class="page-btn" ${this.currentPage === 1 ? 'disabled' : ''} onclick="RidesPage.goToPage(${this.currentPage - 1})">
+          <i class="fas fa-chevron-right"></i>
+        </button>`;
+        
+        for (let i = 1; i <= totalPages; i++) {
+          if (i === 1 || i === totalPages || (i >= this.currentPage - 2 && i <= this.currentPage + 2)) {
+            html += `<button class="page-btn ${i === this.currentPage ? 'active' : ''}" onclick="RidesPage.goToPage(${i})">${i}</button>`;
+          } else if (i === this.currentPage - 3 || i === this.currentPage + 3) {
+            html += `<span class="page-dots">...</span>`;
+          }
+        }
+        
+        html += `<button class="page-btn" ${this.currentPage === totalPages ? 'disabled' : ''} onclick="RidesPage.goToPage(${this.currentPage + 1})">
+          <i class="fas fa-chevron-left"></i>
+        </button>`;
+        
+        pagination.innerHTML = html;
+        
+        const start = (this.currentPage - 1) * this.pageSize + 1;
+        const end = Math.min(this.currentPage * this.pageSize, this.rides.length);
+        document.getElementById('showingFrom').textContent = start;
+        document.getElementById('showingTo').textContent = end;
+        document.getElementById('totalItems').textContent = this.rides.length;
+      },
+      
+      goToPage(page) {
+        this.currentPage = page;
+        this.renderTable();
+        this.renderPagination();
+      },
+      
+      applyFilters() {
+        this.filters = {
+          status: document.getElementById('filterStatus').value,
+          driver: document.getElementById('filterDriver').value,
+          search: document.getElementById('searchQuery').value,
+          dateFrom: document.getElementById('dateFrom').value,
+          dateTo: document.getElementById('dateTo').value
+        };
+        this.currentPage = 1;
+        this.loadRides();
+      },
+      
+      createRide() {
+        Utils.showAlert('פיצ'ר יצירת נסיעה יבוא בקרוב!', 'info');
+      },
+      
+      async viewRide(id) {
+        try {
+          const ride = await API.getRide(id);
+          const html = `
+            <div class="modal-overlay" onclick="this.remove()">
+              <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 900px;">
+                <div class="modal-header">
+                  <h2><i class="fas fa-car"></i> נסיעה #${ride.rideNumber || ride._id.slice(-6)}</h2>
+                  <button class="btn-icon" onclick="this.closest('.modal-overlay').remove()">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <div class="tabs-mini">
+                    <button class="tab-mini-btn active" data-tab="info">פרטים</button>
+                    <button class="tab-mini-btn" data-tab="pricing">תמחור</button>
+                    <button class="tab-mini-btn" data-tab="history">היסטוריה</button>
+                    <button class="tab-mini-btn" data-tab="timeline">Timeline</button>
+                    <button class="tab-mini-btn" data-tab="issues">בעיות (${ride.issues?.length || 0})</button>
+                  </div>
+                  
+                  <div class="tab-mini-content active" data-content="info">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                      <div><strong>נוסע:</strong> ${ride.passenger?.name || '-'}</div>
+                      <div><strong>טלפון:</strong> ${ride.passenger?.phone || '-'}</div>
+                      <div><strong>מוצא:</strong> ${ride.pickup || '-'}</div>
+                      <div><strong>יעד:</strong> ${ride.destination || '-'}</div>
+                      <div><strong>נהג:</strong> ${ride.assignedDriver?.name || 'לא שובץ'}</div>
+                      <div><strong>סטטוס:</strong> ${Utils.getStatusBadge(ride.status)}</div>
+                      <div><strong>זמן יצירה:</strong> ${Utils.formatTime(ride.createdAt)}</div>
+                      <div><strong>נעול:</strong> ${ride.locked ? '🔒 כן' : '🔓 לא'}</div>
+                    </div>
+                    ${ride.notes ? `<div style="margin-top: 15px;"><strong>הערות:</strong><p>${ride.notes}</p></div>` : ''}
+                  </div>
+                  
+                  <div class="tab-mini-content" data-content="pricing">
+                    <div style="background: var(--bg-secondary); padding: 15px; border-radius: 8px;">
+                      <h3 style="margin: 0 0 15px 0;">פירוט תמחור</h3>
+                      <div style="display: grid; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between;">
+                          <span>מחיר בסיס:</span>
+                          <strong>₪${ride.pricing?.basePrice || 25}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                          <span>מרחק (${ride.pricing?.distance || 0} ק"מ):</span>
+                          <strong>₪${ride.pricing?.distancePrice || 0}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                          <span>זמן (${ride.pricing?.duration || 0} דקות):</span>
+                          <strong>₪${ride.pricing?.durationPrice || 0}</strong>
+                        </div>
+                        ${ride.pricing?.surgeMultiplier ? `
+                          <div style="display: flex; justify-content: space-between; color: var(--warning);">
+                            <span>Surge (x${ride.pricing.surgeMultiplier}):</span>
+                            <strong>₪${ride.pricing.surgeAmount || 0}</strong>
+                          </div>
+                        ` : ''}
+                        <hr>
+                        <div style="display: flex; justify-content: space-between; font-size: 18px;">
+                          <strong>סה"כ:</strong>
+                          <strong style="color: var(--success);">₪${ride.pricing?.total || ride.price || 0}</strong>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="tab-mini-content" data-content="history">
+                    <div style="max-height: 300px; overflow-y: auto;">
+                      ${(ride.actionHistory || []).map(h => `
+                        <div style="padding: 10px; border-right: 3px solid var(--primary); margin-bottom: 10px;">
+                          <strong>${Utils.formatTime(h.timestamp)}</strong><br>
+                          ${h.action} - ${h.performedBy || 'מערכת'}<br>
+                          ${h.details ? `<small style="color: var(--gray);">${h.details}</small>` : ''}
+                        </div>
+                      `).join('') || '<p style="text-align: center; color: var(--gray);">אין היסטוריה</p>'}
+                    </div>
+                  </div>
+                  
+                  <div class="tab-mini-content" data-content="timeline">
+                    <div class="timeline">
+                      ${this.renderTimeline(ride)}
+                    </div>
+                  </div>
+                  
+                  <div class="tab-mini-content" data-content="issues">
+                    <div style="max-height: 300px; overflow-y: auto;">
+                      ${(ride.issues || []).map(issue => `
+                        <div style="padding: 15px; background: var(--bg-secondary); border-radius: 5px; margin-bottom: 10px;">
+                          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <strong>${issue.title}</strong>
+                            <span class="badge badge-${issue.severity}">${issue.severity}</span>
+                          </div>
+                          <p>${issue.description}</p>
+                          <small style="color: var(--gray);">דווח על ידי: ${issue.reportedBy} - ${Utils.formatTime(issue.reportedAt)}</small>
+                          ${issue.resolved ? `<br><small style="color: var(--success);">✓ נפתר ב-${Utils.formatTime(issue.resolvedAt)}</small>` : ''}
+                        </div>
+                      `).join('') || '<p style="text-align: center; color: var(--gray);">אין בעיות מדווחות</p>'}
+                    </div>
+                    <button class="btn btn-sm btn-warning" onclick="RidesPage.reportIssue('${id}')" style="margin-top: 15px;">
+                      <i class="fas fa-exclamation-triangle"></i> דווח בעיה
+                    </button>
+                  </div>
+                  
+                  <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="btn btn-warning" onclick="RidesPage.redispatch('${id}')">
+                      <i class="fas fa-redo"></i> Redispatch
+                    </button>
+                    <button class="btn btn-secondary" onclick="RidesPage.toggleLock('${id}', ${ride.locked})">
+                      <i class="fas fa-${ride.locked ? 'unlock' : 'lock'}"></i> ${ride.locked ? 'פתח' : 'נעל'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          document.body.insertAdjacentHTML('beforeend', html);
+          
+          document.querySelectorAll('.tab-mini-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+              document.querySelectorAll('.tab-mini-btn').forEach(b => b.classList.remove('active'));
+              document.querySelectorAll('.tab-mini-content').forEach(c => c.classList.remove('active'));
+              this.classList.add('active');
+              document.querySelector(`[data-content="${this.dataset.tab}"]`).classList.add('active');
+            });
+          });
+        } catch (error) {
+          Utils.showAlert('שגיאה: ' + error.message, 'error');
+        }
+      },
+      
+      renderTimeline(ride) {
+        const events = [
+          { time: ride.createdAt, label: 'נוצר', icon: 'plus' },
+          ride.sentAt && { time: ride.sentAt, label: 'נשלח', icon: 'paper-plane' },
+          ride.assignedAt && { time: ride.assignedAt, label: 'שובץ', icon: 'user-check' },
+          ride.approvedAt && { time: ride.approvedAt, label: 'אושר', icon: 'check' },
+          ride.startedAt && { time: ride.startedAt, label: 'התחיל', icon: 'play' },
+          ride.arrivedAt && { time: ride.arrivedAt, label: 'הגיע', icon: 'map-marker-alt' },
+          ride.finishedAt && { time: ride.finishedAt, label: 'הסתיים', icon: 'flag-checkered' }
+        ].filter(Boolean);
+        
+        return events.map(e => `
+          <div class="timeline-item">
+            <div class="timeline-icon"><i class="fas fa-${e.icon}"></i></div>
+            <div class="timeline-content">
+              <strong>${e.label}</strong><br>
+              <small>${Utils.formatTime(e.time)}</small>
+            </div>
+          </div>
+        `).join('');
+      },
+      
+      editRide(id) {
+        Utils.showAlert('פיצ'ר עריכת נסיעה יבוא בקרוב!', 'info');
+      },
+      
+      async redispatch(id) {
+        if (!confirm('האם לשלוח מחדש לנהגים?')) return;
+        try {
+          await API.redispatchRide(id);
+          Utils.showAlert('הנסיעה נשלחה מחדש', 'success');
+          await this.loadRides();
+        } catch (error) {
+          Utils.showAlert('שגיאה: ' + error.message, 'error');
+        }
+      },
+      
+      async toggleLock(id, currentLocked) {
+        const action = currentLocked ? 'לפתוח' : 'לנעול';
+        if (!confirm(`האם ${action} נסיעה זו?`)) return;
+        try {
+          if (currentLocked) {
+            await API.unlockRide(id);
+          } else {
+            await API.lockRide(id);
+          }
+          Utils.showAlert(`הנסיעה ${currentLocked ? 'נפתחה' : 'ננעלה'}`, 'success');
+          document.querySelector('.modal-overlay')?.remove();
+          await this.loadRides();
+        } catch (error) {
+          Utils.showAlert('שגיאה: ' + error.message, 'error');
+        }
+      },
+      
+      reportIssue(id) {
+        const title = prompt('כותרת הבעיה:');
+        if (!title) return;
+        const description = prompt('תיאור הבעיה:');
+        if (!description) return;
+        const severity = prompt('חומרה (low/medium/high):') || 'medium';
+        
+        // TODO: Call API
+        Utils.showAlert('הבעיה דווחה', 'success');
+      },
+      
+      showBulkActions() {
+        const selected = Array.from(document.querySelectorAll('.ride-checkbox:checked')).map(cb => cb.dataset.id);
+        if (selected.length === 0) {
+          Utils.showAlert('בחר נסיעות תחילה', 'warning');
+          return;
+        }
+        
+        const action = prompt(`פעולה על ${selected.length} נסיעות:\n1. שנה סטטוס\n2. ייצא\n3. מחק\n\nהזן מספר:`);
+        if (action === '1') {
+          const status = prompt('סטטוס חדש:');
+          if (status) {
+            Utils.showAlert(`מעדכן ${selected.length} נסיעות...`, 'info');
+          }
+        } else if (action === '2') {
+          this.exportRides(selected);
+        } else if (action === '3') {
+          if (confirm(`למחוק ${selected.length} נסיעות?`)) {
+            Utils.showAlert('מוחק...', 'info');
+          }
+        }
+      },
+      
+      exportRides(selectedIds) {
+        try {
+          const ridesToExport = selectedIds ? 
+            this.rides.filter(r => selectedIds.includes(r._id)) : 
+            this.rides;
+          
+          const data = ridesToExport.map(r => ({
+            'מספר': r.rideNumber || r._id.slice(-6),
+            'נוסע': r.passenger?.name || '',
+            'טלפון': r.passenger?.phone || '',
+            'מוצא': r.pickup || '',
+            'יעד': r.destination || '',
+            'נהג': r.assignedDriver?.name || '',
+            'מחיר': r.price || 0,
+            'סטטוס': r.status || '',
+            'תאריך': Utils.formatDate(r.createdAt)
+          }));
+          
+          Utils.exportToExcel(data, 'נסיעות_' + new Date().toISOString().split('T')[0]);
+        } catch (error) {
+          Utils.showAlert('שגיאה בייצוא: ' + error.message, 'error');
+        }
+      }
+    };
+    
+    document.addEventListener('DOMContentLoaded', () => RidesPage.init());
+  </script>
+  
+  <style>
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.2s;
+    }
+    
+    .modal-content {
+      background: var(--bg-primary);
+      border-radius: 12px;
+      max-height: 90vh;
+      overflow-y: auto;
+      width: 90%;
+      max-width: 600px;
+      animation: slideUp 0.3s;
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .modal-header h2 {
+      margin: 0;
+    }
+    
+    .modal-body {
+      padding: 20px;
+    }
+    
+    .tabs-mini {
+      display: flex;
+      gap: 5px;
+      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .tab-mini-btn {
+      padding: 10px 15px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--text-secondary);
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      font-size: 13px;
+    }
+    
+    .tab-mini-btn:hover {
+      color: var(--primary);
+    }
+    
+    .tab-mini-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    
+    .tab-mini-content {
+      display: none;
+    }
+    
+    .tab-mini-content.active {
+      display: block;
+      animation: fadeIn 0.3s;
+    }
+    
+    .timeline {
+      position: relative;
+      padding-right: 30px;
+    }
+    
+    .timeline::before {
+      content: '';
+      position: absolute;
+      right: 10px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--border-color);
+    }
+    
+    .timeline-item {
+      position: relative;
+      margin-bottom: 20px;
+      padding-right: 30px;
+    }
+    
+    .timeline-icon {
+      position: absolute;
+      right: 0;
+      width: 20px;
+      height: 20px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 10px;
+    }
+    
+    .timeline-content {
+      background: var(--bg-secondary);
+      padding: 10px;
+      border-radius: 5px;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</body>
+</html>
