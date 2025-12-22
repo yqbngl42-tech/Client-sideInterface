@@ -4,56 +4,56 @@
 
 const CONFIG = {
   // API Base URL
-  API_URL: 'https://taxiserver-system.onrender.com',
+  API_URL: 'http://localhost:3000',
   
-  // API Endpoints (NEW CLEAN API!)
+  // API Endpoints (Matching Server Routes!)
   ENDPOINTS: {
-    // Auth
-    LOGIN: '/api/login',
+    // Auth - mounted at /auth
+    LOGIN: '/auth/login',
     LOGOUT: '/auth/logout',
     ME: '/auth/me',
     
-    // Drivers
-    DRIVERS: '/drivers',
-    DRIVER: (id) => `/drivers/${id}`,
-    DRIVER_BLOCK: (id) => `/drivers/${id}/block`,
-    DRIVER_UNBLOCK: (id) => `/drivers/${id}/unblock`,
-    DRIVER_VERIFY: (id) => `/drivers/${id}/verify-document`,
+    // Drivers - mounted at /api/drivers
+    DRIVERS: '/api/drivers',
+    DRIVER: (id) => `/api/drivers/${id}`,
+    DRIVER_BLOCK: (id) => `/api/drivers/${id}/block`,
+    DRIVER_UNBLOCK: (id) => `/api/drivers/${id}/unblock`,
+    DRIVER_VERIFY: (id) => `/api/drivers/${id}/verify-document`,
     
-    // Rides
-    RIDES: '/rides',
-    RIDE: (id) => `/rides/${id}`,
-    RIDE_ASSIGN: (id) => `/rides/${id}/assign`,
-    RIDE_STATUS: (id) => `/rides/${id}/status`,
-    RIDE_CANCEL: (id) => `/rides/${id}/cancel`,
-    RIDE_LOCK: (id) => `/rides/${id}/lock`,
-    RIDE_UNLOCK: (id) => `/rides/${id}/unlock`,
-    RIDE_REDISPATCH: (id) => `/rides/${id}/redispatch`,
+    // Rides - mounted at /api/rides
+    RIDES: '/api/rides',
+    RIDE: (id) => `/api/rides/${id}`,
+    RIDE_ASSIGN: (id) => `/api/rides/${id}/assign`,
+    RIDE_STATUS: (id) => `/api/rides/${id}/status`,
+    RIDE_CANCEL: (id) => `/api/rides/${id}/cancel`,
+    RIDE_LOCK: (id) => `/api/rides/${id}/lock`,
+    RIDE_UNLOCK: (id) => `/api/rides/${id}/unlock`,
+    RIDE_REDISPATCH: (id) => `/api/rides/${id}/redispatch`,
     
-    // Payments
-    PAYMENTS: '/payments',
-    PAYMENT: (id) => `/payments/${id}`,
-    PAYMENT_VERIFY: (id) => `/payments/${id}/verify`,
-    PAYMENT_MARK_PAID: (id) => `/payments/${id}/mark-paid`,
-    PAYMENT_REMIND: (id) => `/payments/${id}/remind`,
-    PAYMENT_SUMMARY: '/payments/reports/summary',
+    // Payments - mounted at /api/payments
+    PAYMENTS: '/api/payments',
+    PAYMENT: (id) => `/api/payments/${id}`,
+    PAYMENT_VERIFY: (id) => `/api/payments/${id}/verify`,
+    PAYMENT_MARK_PAID: (id) => `/api/payments/${id}/mark-paid`,
+    PAYMENT_REMIND: (id) => `/api/payments/${id}/remind`,
+    PAYMENT_SUMMARY: '/api/payments/reports/summary',
     
-    // Registrations
-    REGISTRATIONS: '/registrations',
-    REGISTRATION: (id) => `/registrations/${id}`,
-    REGISTRATION_APPROVE: (id) => `/registrations/${id}/approve`,
-    REGISTRATION_REJECT: (id) => `/registrations/${id}/reject`,
-    REGISTRATION_RESEND: (id) => `/registrations/${id}/resend-code`,
-    REGISTRATION_CANCEL: (id) => `/registrations/${id}/cancel`,
+    // Registrations - mounted at /api/registrations
+    REGISTRATIONS: '/api/registrations',
+    REGISTRATION: (id) => `/api/registrations/${id}`,
+    REGISTRATION_APPROVE: (id) => `/api/registrations/${id}/approve`,
+    REGISTRATION_REJECT: (id) => `/api/registrations/${id}/reject`,
+    REGISTRATION_RESEND: (id) => `/api/registrations/${id}/resend-code`,
+    REGISTRATION_CANCEL: (id) => `/api/registrations/${id}/cancel`,
     
-    // Messages
-    SEND_MESSAGE: '/messages/send',
+    // Messages - mounted at /api/messages
+    SEND_MESSAGE: '/api/messages/send',
     
-    // System
-    SYSTEM_HEALTH: '/system/health',
-    DASHBOARD_SUMMARY: '/dashboard/summary',
-    LOGS_CLEANUP: '/system/logs/cleanup',
-    BACKUPS_CREATE: '/system/backups/create'
+    // System - mounted at /api/system
+    SYSTEM_HEALTH: '/api/system/health',
+    DASHBOARD_SUMMARY: '/api/dashboard/summary',
+    LOGS_CLEANUP: '/api/system/logs/cleanup',
+    BACKUPS_CREATE: '/api/system/backups/create'
   },
   
   // App Settings
