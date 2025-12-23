@@ -300,14 +300,14 @@
         // Logout
         document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
           e.preventDefault();
-          API.logout();
+          api.logout();
           window.location.href = 'index.html';
         });
       },
       
       async loadStats() {
         try {
-          const drivers = await API.getDrivers();
+          const drivers = await api.getDrivers();
           
           const total = drivers.length;
           const active = drivers.filter(d => d.status === 'active').length;
@@ -327,7 +327,7 @@
         try {
           Utils.showLoading();
           
-          const response = await API.getDrivers(this.filters);
+          const response = await api.getDrivers(this.filters);
           this.drivers = response.drivers || response;
           
           this.renderTable();
@@ -466,12 +466,12 @@
       },
       
       openAddModal() {
-        Utils.showAlert("פיצ'ר הוספת נהג יבוא בקרוב!", "info");
+        Utils.showAlert(`פיצ'ר הוספת נהג יבוא בקרוב!`, "info");
       },
       
       async viewDriver(id) {
         try {
-          const driver = await API.getDriver(id);
+          const driver = await api.getDriver(id);
           const html = `
             <div class="modal-overlay" onclick="this.remove()">
               <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 800px;">
@@ -600,7 +600,7 @@
         if (!text.trim()) return;
         
         try {
-          await API.addDriverNote(driverId, text);
+          await api.addDriverNote(driverId, text);
           Utils.showAlert('הערה נוספה', 'success');
           document.querySelector('.modal-overlay').remove();
           await this.viewDriver(driverId);
@@ -622,7 +622,7 @@
             formData.append('document', file);
             formData.append('type', prompt('סוג מסמך (רישיון/ביטוח/תעודת זהות):') || 'other');
             
-            await API.uploadDriverDocument(driverId, formData);
+            await api.uploadDriverDocument(driverId, formData);
             Utils.showAlert('מסמך הועלה בהצלחה', 'success');
             document.querySelector('.modal-overlay').remove();
             await this.viewDriver(driverId);
@@ -634,7 +634,7 @@
       },
       
       editDriver(id) {
-        Utils.showAlert("פיצ'ר הוספת נהג יבוא בקרוב!", "info");
+        Utils.showAlert(`פיצ'ר הוספת נהג יבוא בקרוב!`, "info");
       },
       
       async toggleBlock(id, currentStatus) {
@@ -644,7 +644,7 @@
         if (!confirm(`האם אתה בטוח שברצונך ${action} נהג זה?`)) return;
         
         try {
-          await API.updateDriver(id, { status: newStatus });
+          await api.updateDriver(id, { status: newStatus });
           Utils.showAlert(`הנהג ${newStatus === 'blocked' ? 'נחסם' : 'שוחרר'} בהצלחה`, 'success');
           await this.loadDrivers();
           await this.loadStats();
@@ -782,5 +782,267 @@
       to { transform: translateY(0); opacity: 1; }
     }
   </style>
+</body>
+<!-- הדבק את הקוד הזה לפני </body> בקובץ drivers.html -->
+
+<!-- ===============================================
+     🎯 ADD DRIVER MODAL
+     =============================================== -->
+<div class="modal" id="addDriverModal" style="display: none;">
+  <div class="modal-content" style="max-width: 600px;">
+    <div class="modal-header">
+      <h3><i class="fas fa-user-plus"></i> הוספת נהג חדש</h3>
+      <button class="btn-icon" onclick="closeAddDriverModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <form id="addDriverForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label>שם מלא *</label>
+          <input type="text" id="newDriverName" required placeholder="יוסי כהן">
+        </div>
+        
+        <div class="form-group">
+          <label>מספר טלפון *</label>
+          <input type="tel" id="newDriverPhone" required placeholder="0501234567" pattern="[0-9]{10}">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>מספר רישיון נהיגה *</label>
+          <input type="text" id="newDriverLicense" required placeholder="1234567">
+        </div>
+        
+        <div class="form-group">
+          <label>מספר רכב *</label>
+          <input type="text" id="newCarNumber" required placeholder="12-345-67">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>דגם רכב *</label>
+          <input type="text" id="newCarModel" required placeholder="טויוטה קורולה 2020">
+        </div>
+        
+        <div class="form-group">
+          <label>שנת ייצור</label>
+          <input type="number" id="newCarYear" placeholder="2020" min="1990" max="2025">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>הערות</label>
+        <textarea id="newDriverNotes" rows="3" placeholder="הערות נוספות על הנהג..."></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="newDriverActive" checked>
+          <span>נהג פעיל (יקבל נסיעות מיד)</span>
+        </label>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeAddDriverModal()">
+          ביטול
+        </button>
+        <button type="submit" class="btn btn-success">
+          <i class="fas fa-check"></i> הוסף נהג
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  
+  .modal[style*="display: flex"] {
+    display: flex !important;
+  }
+  
+  .modal .modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  
+  .modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--border);
+  }
+  
+  .modal .modal-header h3 {
+    font-size: 22px;
+    color: var(--dark);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 8px;
+  }
+  
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+  
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+  
+  .checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 2px solid var(--border);
+  }
+  
+  [data-theme="dark"] .modal .modal-content {
+    background: #1e293b;
+  }
+  
+  [data-theme="dark"] .modal .modal-header h3,
+  [data-theme="dark"] .form-group label {
+    color: #f1f5f9;
+  }
+  
+  [data-theme="dark"] .form-group input,
+  [data-theme="dark"] .form-group textarea {
+    background: #0f172a;
+    color: #f1f5f9;
+    border-color: #334155;
+  }
+  
+  @media (max-width: 768px) {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  function openAddDriverModal() {
+    document.getElementById('addDriverModal').style.display = 'flex';
+    document.getElementById('newDriverName').focus();
+  }
+  
+  function closeAddDriverModal() {
+    document.getElementById('addDriverModal').style.display = 'none';
+    document.getElementById('addDriverForm').reset();
+  }
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('addDriverForm');
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const driverData = {
+          name: document.getElementById('newDriverName').value,
+          phone: document.getElementById('newDriverPhone').value,
+          licenseNumber: document.getElementById('newDriverLicense').value,
+          carNumber: document.getElementById('newCarNumber').value,
+          carModel: document.getElementById('newCarModel').value,
+          carYear: document.getElementById('newCarYear').value || null,
+          notes: document.getElementById('newDriverNotes').value || '',
+          status: document.getElementById('newDriverActive').checked ? 'active' : 'inactive'
+        };
+        
+        try {
+          const token = localStorage.getItem('taxi_admin_token');
+          
+          const response = await fetch('https://taxiserver-system.onrender.com/drivers', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(driverData)
+          });
+          
+          if (!response.ok) throw new Error('Failed');
+          
+          alert('נהג נוסף בהצלחה!');
+          closeAddDriverModal();
+          window.location.reload();
+          
+        } catch (error) {
+          alert('שגיאה בהוספת נהג');
+        }
+      });
+    }
+    
+    const addBtn = document.getElementById('addDriverBtn');
+    if (addBtn) {
+      addBtn.onclick = openAddDriverModal;
+    }
+  });
+  
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAddDriverModal();
+  });
+</script>
 </body>
 </html>
