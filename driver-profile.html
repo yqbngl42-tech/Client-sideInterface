@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>פרופיל נהג - מערכת ניהול מוניות</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dark-mode.css">
+  <link rel="stylesheet" href="css/driver-profile.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>
+          <i class="fas fa-taxi"></i>
+          Taxi Manager
+        </h2>
+        <div class="user-info" id="userInfo">
+          <i class="fas fa-user-circle"></i>
+          מנהל מערכת
+        </div>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li class="menu-section-title">ניהול</li>
+        <a href="dashboard.html" class="menu-item">
+          <i class="fas fa-home"></i>
+          <span>לוח בקרה</span>
+        </a>
+        <a href="rides.html" class="menu-item">
+          <i class="fas fa-car"></i>
+          <span>נסיעות</span>
+        </a>
+        <a href="drivers.html" class="menu-item active">
+          <i class="fas fa-users"></i>
+          <span>נהגים</span>
+        </a>
+        <a href="registrations.html" class="menu-item">
+          <i class="fas fa-user-plus"></i>
+          <span>רישומים חדשים</span>
+        </a>
+        <a href="payments.html" class="menu-item">
+          <i class="fas fa-money-bill-wave"></i>
+          <span>תשלומים</span>
+        </a>
+        
+        <li class="menu-section-title">מערכת</li>
+        <a href="settings.html" class="menu-item">
+          <i class="fas fa-cog"></i>
+          <span>הגדרות</span>
+        </a>
+        <a href="#" class="menu-item" id="logoutBtn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>התנתק</span>
+        </a>
+      </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- HEADER -->
+      <header class="header">
+        <div class="header-title">
+          <button class="btn-icon" onclick="history.back()" title="חזור">
+            <i class="fas fa-arrow-right"></i>
+          </button>
+          <h1>
+            <i class="fas fa-user"></i>
+            <span id="driverNameHeader">פרופיל נהג</span>
+          </h1>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary" id="editDriverBtn">
+            <i class="fas fa-edit"></i>
+            ערוך פרטים
+          </button>
+          <button class="btn-icon" id="themeToggle" title="החלף ערכת נושא">
+            <i class="fas fa-moon"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTENT -->
+      <div class="content-area">
+        
+        <!-- DRIVER HEADER CARD -->
+        <div class="driver-header-card">
+          <div class="driver-avatar-section">
+            <div class="driver-avatar" id="driverAvatar">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="driver-status">
+              <span class="status-badge" id="driverStatusBadge">
+                <i class="fas fa-circle"></i>
+                טוען...
+              </span>
+            </div>
+          </div>
+          
+          <div class="driver-info-section">
+            <h2 id="driverName">-</h2>
+            <div class="driver-meta">
+              <span class="meta-item">
+                <i class="fas fa-id-card"></i>
+                <span id="driverId">-</span>
+              </span>
+              <span class="meta-item">
+                <i class="fas fa-phone"></i>
+                <a href="tel:" id="driverPhone">-</a>
+              </span>
+              <span class="meta-item">
+                <i class="fas fa-calendar"></i>
+                הצטרף: <span id="driverJoinDate">-</span>
+              </span>
+            </div>
+            
+            <div class="driver-quick-stats">
+              <div class="quick-stat">
+                <div class="quick-stat-icon success">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="quick-stat-info">
+                  <div class="quick-stat-value" id="totalRides">0</div>
+                  <div class="quick-stat-label">נסיעות</div>
+                </div>
+              </div>
+              
+              <div class="quick-stat">
+                <div class="quick-stat-icon warning">
+                  <i class="fas fa-star"></i>
+                </div>
+                <div class="quick-stat-info">
+                  <div class="quick-stat-value" id="driverRating">5.0</div>
+                  <div class="quick-stat-label">דירוג ממוצע</div>
+                </div>
+              </div>
+              
+              <div class="quick-stat">
+                <div class="quick-stat-icon primary">
+                  <i class="fas fa-coins"></i>
+                </div>
+                <div class="quick-stat-info">
+                  <div class="quick-stat-value" id="totalEarnings">₪0</div>
+                  <div class="quick-stat-label">סה"כ הכנסות</div>
+                </div>
+              </div>
+              
+              <div class="quick-stat">
+                <div class="quick-stat-icon danger">
+                  <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="quick-stat-info">
+                  <div class="quick-stat-value" id="unpaidAmount">₪0</div>
+                  <div class="quick-stat-label">חוב</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="driver-actions-section">
+            <button class="action-btn success" onclick="DriverProfile.sendMessage()">
+              <i class="fas fa-comment"></i>
+              שלח הודעה
+            </button>
+            <button class="action-btn primary" onclick="DriverProfile.makePayment()">
+              <i class="fas fa-hand-holding-usd"></i>
+              רשום תשלום
+            </button>
+            <button class="action-btn warning" onclick="DriverProfile.toggleBlock()">
+              <i class="fas fa-ban"></i>
+              <span id="blockBtnText">חסום נהג</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- TABS NAVIGATION -->
+        <div class="tabs-container">
+          <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="overview">
+              <i class="fas fa-info-circle"></i>
+              פרטים כלליים
+            </button>
+            <button class="tab-btn" data-tab="documents">
+              <i class="fas fa-file-alt"></i>
+              מסמכים ותמונות
+            </button>
+            <button class="tab-btn" data-tab="history">
+              <i class="fas fa-history"></i>
+              היסטוריית נסיעות
+            </button>
+            <button class="tab-btn" data-tab="payments">
+              <i class="fas fa-money-bill-wave"></i>
+              תשלומים ועמלות
+            </button>
+            <button class="tab-btn" data-tab="reviews">
+              <i class="fas fa-star"></i>
+              דירוגים וביקורות
+            </button>
+          </div>
+
+          <!-- TAB CONTENT: OVERVIEW -->
+          <div class="tab-content active" id="tab-overview">
+            <div class="cards-grid">
+              <!-- Personal Details Card -->
+              <div class="card">
+                <div class="card-header">
+                  <h3>
+                    <i class="fas fa-user"></i>
+                    פרטים אישיים
+                  </h3>
+                </div>
+                <div class="card-body">
+                  <div class="detail-row">
+                    <span class="detail-label">שם מלא:</span>
+                    <span class="detail-value" id="detailName">-</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">תעודת זהות:</span>
+                    <span class="detail-value" id="detailIdNumber">-</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">טלפון:</span>
+                    <span class="detail-value">
+                      <a href="tel:" id="detailPhone">-</a>
+                    </span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">עיר מגורים:</span>
+                    <span class="detail-value" id="detailCity">-</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">אזור עבודה:</span>
+                    <span class="detail-value" id="detailWorkArea">-</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Vehicle Details Card -->
+              <div class="card">
+                <div class="card-header">
+                  <h3>
+                    <i class="fas fa-car"></i>
+                    פרטי רכב
+                  </h3>
+                </div>
+                <div class="card-body">
+                  <div class="detail-row">
+                    <span class="detail-label">סוג רכב:</span>
+                    <span class="detail-value" id="detailVehicleType">-</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">מספר רכב:</span>
+                    <span class="detail-value" id="detailVehicleNumber">-</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">רישיון נהיגה:</span>
+                    <span class="detail-value" id="detailLicenseNumber">-</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Status & Activity Card -->
+              <div class="card">
+                <div class="card-header">
+                  <h3>
+                    <i class="fas fa-chart-line"></i>
+                    סטטוס ופעילות
+                  </h3>
+                </div>
+                <div class="card-body">
+                  <div class="detail-row">
+                    <span class="detail-label">סטטוס:</span>
+                    <span class="detail-value" id="detailStatus">-</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">תאריך הצטרפות:</span>
+                    <span class="detail-value" id="detailJoinDate">-</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">אושר על ידי:</span>
+                    <span class="detail-value" id="detailApprovedBy">-</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">נסיעות החודש:</span>
+                    <span class="detail-value" id="detailMonthlyRides">-</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">שיעור קבלה:</span>
+                    <span class="detail-value" id="detailAcceptanceRate">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB CONTENT: DOCUMENTS -->
+          <div class="tab-content" id="tab-documents">
+            <div class="documents-grid">
+              <!-- Profile Photo -->
+              <div class="document-card">
+                <div class="document-header">
+                  <h4>
+                    <i class="fas fa-user-circle"></i>
+                    תמונת פרופיל
+                  </h4>
+                  <span class="verification-badge" id="profilePhotoVerified">
+                    <i class="fas fa-question-circle"></i>
+                    לא אומת
+                  </span>
+                </div>
+                <div class="document-preview" id="profilePhotoPreview">
+                  <i class="fas fa-user" style="font-size: 48px; color: var(--gray);"></i>
+                  <p style="margin-top: 10px; color: var(--gray);">אין תמונה</p>
+                </div>
+                <div class="document-actions">
+                  <button class="btn btn-sm btn-primary" onclick="DriverProfile.viewDocument('profilePhoto')">
+                    <i class="fas fa-search-plus"></i>
+                    הגדל
+                  </button>
+                  <button class="btn btn-sm btn-success" onclick="DriverProfile.verifyDocument('profilePhoto')">
+                    <i class="fas fa-check"></i>
+                    אמת
+                  </button>
+                </div>
+              </div>
+
+              <!-- ID Document -->
+              <div class="document-card">
+                <div class="document-header">
+                  <h4>
+                    <i class="fas fa-id-card"></i>
+                    רישיון נהיגה / תעודת זהות
+                  </h4>
+                  <span class="verification-badge" id="idDocumentVerified">
+                    <i class="fas fa-question-circle"></i>
+                    לא אומת
+                  </span>
+                </div>
+                <div class="document-preview" id="idDocumentPreview">
+                  <i class="fas fa-id-card" style="font-size: 48px; color: var(--gray);"></i>
+                  <p style="margin-top: 10px; color: var(--gray);">אין מסמך</p>
+                </div>
+                <div class="document-actions">
+                  <button class="btn btn-sm btn-primary" onclick="DriverProfile.viewDocument('idDocument')">
+                    <i class="fas fa-search-plus"></i>
+                    הגדל
+                  </button>
+                  <button class="btn btn-sm btn-success" onclick="DriverProfile.verifyDocument('idDocument')">
+                    <i class="fas fa-check"></i>
+                    אמת
+                  </button>
+                </div>
+              </div>
+
+              <!-- Car Photo -->
+              <div class="document-card">
+                <div class="document-header">
+                  <h4>
+                    <i class="fas fa-car"></i>
+                    תמונת רכב
+                  </h4>
+                  <span class="verification-badge" id="carPhotoVerified">
+                    <i class="fas fa-question-circle"></i>
+                    לא אומת
+                  </span>
+                </div>
+                <div class="document-preview" id="carPhotoPreview">
+                  <i class="fas fa-car" style="font-size: 48px; color: var(--gray);"></i>
+                  <p style="margin-top: 10px; color: var(--gray);">אין תמונה</p>
+                </div>
+                <div class="document-actions">
+                  <button class="btn btn-sm btn-primary" onclick="DriverProfile.viewDocument('carPhoto')">
+                    <i class="fas fa-search-plus"></i>
+                    הגדל
+                  </button>
+                  <button class="btn btn-sm btn-success" onclick="DriverProfile.verifyDocument('carPhoto')">
+                    <i class="fas fa-check"></i>
+                    אמת
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB CONTENT: HISTORY -->
+          <div class="tab-content" id="tab-history">
+            <div class="card">
+              <div class="card-header">
+                <h3>
+                  <i class="fas fa-history"></i>
+                  היסטוריית נסיעות
+                  <span class="badge" id="historyCount">0</span>
+                </h3>
+                <div class="card-actions">
+                  <select class="form-control" id="historyFilter">
+                    <option value="all">הכל</option>
+                    <option value="completed">הושלמו</option>
+                    <option value="cancelled">בוטלו</option>
+                  </select>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>מספר נסיעה</th>
+                        <th>תאריך ושעה</th>
+                        <th>איסוף</th>
+                        <th>יעד</th>
+                        <th>מחיר</th>
+                        <th>סטטוס</th>
+                        <th>פעולות</th>
+                      </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                      <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px;">
+                          <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--primary);"></i>
+                          <p style="margin-top: 10px; color: var(--gray);">טוען היסטוריה...</p>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB CONTENT: PAYMENTS -->
+          <div class="tab-content" id="tab-payments">
+            <div class="cards-grid">
+              <!-- Financial Summary Card -->
+              <div class="card">
+                <div class="card-header">
+                  <h3>
+                    <i class="fas fa-chart-pie"></i>
+                    סיכום פיננסי
+                  </h3>
+                </div>
+                <div class="card-body">
+                  <div class="financial-stat">
+                    <div class="financial-stat-label">סה"כ הכנסות:</div>
+                    <div class="financial-stat-value success" id="financialTotal">₪0</div>
+                  </div>
+                  <div class="financial-stat">
+                    <div class="financial-stat-label">החודש:</div>
+                    <div class="financial-stat-value primary" id="financialThisMonth">₪0</div>
+                  </div>
+                  <div class="financial-stat">
+                    <div class="financial-stat-label">חודש שעבר:</div>
+                    <div class="financial-stat-value" id="financialLastMonth">₪0</div>
+                  </div>
+                  <div class="financial-stat">
+                    <div class="financial-stat-label">טרם שולם:</div>
+                    <div class="financial-stat-value danger" id="financialUnpaid">₪0</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Commission Details Card -->
+              <div class="card">
+                <div class="card-header">
+                  <h3>
+                    <i class="fas fa-percentage"></i>
+                    פירוט עמלות
+                  </h3>
+                </div>
+                <div class="card-body">
+                  <div class="detail-row">
+                    <span class="detail-label">עמלה לנסיעה:</span>
+                    <span class="detail-value" id="commissionRate">-</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">סה"כ עמלות החודש:</span>
+                    <span class="detail-value danger" id="monthlyCommission">₪0</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">נסיעות שלא שולמו:</span>
+                    <span class="detail-value" id="unpaidRides">0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Payments History -->
+            <div class="card" style="margin-top: 20px;">
+              <div class="card-header">
+                <h3>
+                  <i class="fas fa-receipt"></i>
+                  היסטוריית תשלומים
+                </h3>
+                <button class="btn btn-sm btn-primary" onclick="DriverProfile.makePayment()">
+                  <i class="fas fa-plus"></i>
+                  רשום תשלום
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>תאריך</th>
+                        <th>סוג</th>
+                        <th>סכום</th>
+                        <th>אמצעי תשלום</th>
+                        <th>הערות</th>
+                      </tr>
+                    </thead>
+                    <tbody id="paymentsTableBody">
+                      <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px;">
+                          <i class="fas fa-receipt" style="font-size: 48px; color: var(--gray); opacity: 0.3;"></i>
+                          <p style="margin-top: 10px; color: var(--gray);">אין תשלומים להצגה</p>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB CONTENT: REVIEWS -->
+          <div class="tab-content" id="tab-reviews">
+            <div class="cards-grid">
+              <!-- Rating Summary Card -->
+              <div class="card">
+                <div class="card-header">
+                  <h3>
+                    <i class="fas fa-star"></i>
+                    סיכום דירוגים
+                  </h3>
+                </div>
+                <div class="card-body">
+                  <div class="rating-summary">
+                    <div class="rating-score">
+                      <div class="rating-number" id="avgRating">5.0</div>
+                      <div class="rating-stars" id="avgRatingStars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                      </div>
+                      <div class="rating-count" id="reviewCount">0 ביקורות</div>
+                    </div>
+                    <div class="rating-breakdown" id="ratingBreakdown">
+                      <!-- Will be populated by JS -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Reviews List -->
+            <div class="card" style="margin-top: 20px;">
+              <div class="card-header">
+                <h3>
+                  <i class="fas fa-comments"></i>
+                  ביקורות לקוחות
+                </h3>
+              </div>
+              <div class="card-body">
+                <div id="reviewsList">
+                  <div style="text-align: center; padding: 40px;">
+                    <i class="fas fa-comments" style="font-size: 48px; color: var(--gray); opacity: 0.3;"></i>
+                    <p style="margin-top: 10px; color: var(--gray);">אין ביקורות עדיין</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- IMAGE VIEWER MODAL -->
+  <div class="modal" id="imageViewerModal">
+    <div class="modal-backdrop" onclick="DriverProfile.closeImageViewer()"></div>
+    <div class="modal-content image-viewer">
+      <button class="modal-close" onclick="DriverProfile.closeImageViewer()">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="image-viewer-content">
+        <img id="viewerImage" src="" alt="">
+        <div class="image-viewer-controls">
+          <button class="btn btn-sm" onclick="DriverProfile.rotateImage(-90)">
+            <i class="fas fa-undo"></i>
+            סובב שמאלה
+          </button>
+          <button class="btn btn-sm" onclick="DriverProfile.rotateImage(90)">
+            <i class="fas fa-redo"></i>
+            סובב ימינה
+          </button>
+          <button class="btn btn-sm" onclick="DriverProfile.downloadImage()">
+            <i class="fas fa-download"></i>
+            הורד
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/driver-profile.js"></script>
+  
+</body>
+</html>
