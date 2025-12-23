@@ -7,6 +7,274 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/dark-mode.css">
+  
+  <style>
+    /* Add Driver Form Styles */
+    .add-driver-modal .modal-body {
+      padding: 25px;
+    }
+    
+    .steps-indicator {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      position: relative;
+    }
+    
+    .steps-indicator::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: #e2e8f0;
+      z-index: 0;
+    }
+    
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      z-index: 1;
+      flex: 1;
+    }
+    
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+    
+    .step.active .step-number {
+      background: #6366f1;
+      color: white;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+    
+    .step.completed .step-number {
+      background: #10b981;
+      color: white;
+    }
+    
+    .step.completed .step-number::before {
+      content: '✓';
+      font-size: 20px;
+    }
+    
+    .step-label {
+      font-size: 13px;
+      color: #64748b;
+      font-weight: 500;
+      text-align: center;
+    }
+    
+    .step.active .step-label {
+      color: #6366f1;
+      font-weight: 600;
+    }
+    
+    .form-step {
+      display: none;
+      animation: fadeIn 0.3s;
+    }
+    
+    .form-step.active {
+      display: block;
+    }
+    
+    .form-step h3 {
+      margin: 0 0 20px 0;
+      color: #1e293b;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .form-step h3 i {
+      color: #6366f1;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #475569;
+      font-weight: 500;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .form-group label i {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+    
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    
+    .form-group small {
+      display: block;
+      margin-top: 5px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    
+    .form-hint {
+      background: #f1f5f9;
+      padding: 12px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 20px;
+      border-right: 3px solid #6366f1;
+    }
+    
+    .document-upload-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .upload-box {
+      position: relative;
+    }
+    
+    .upload-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 20px;
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: #f8fafc;
+      min-height: 150px;
+    }
+    
+    .upload-label:hover {
+      border-color: #6366f1;
+      background: #f1f5f9;
+    }
+    
+    .upload-label i {
+      font-size: 32px;
+      color: #94a3b8;
+      margin-bottom: 10px;
+    }
+    
+    .upload-label span {
+      font-size: 13px;
+      color: #64748b;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .upload-preview {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    
+    .upload-preview.has-image {
+      display: block;
+    }
+    
+    .upload-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .form-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #e2e8f0;
+    }
+    
+    .form-actions .btn {
+      min-width: 120px;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .document-upload-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .steps-indicator {
+        font-size: 11px;
+      }
+      
+      .step-number {
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="dashboard-container">
@@ -270,16 +538,73 @@
       
       async init() {
         this.attachEventListeners();
-        await this.loadDrivers();
-        await this.loadStats();
+        // Load drivers and stats in ONE request to avoid rate limiting
+        await this.loadDriversAndStats();
+      },
+      
+      async loadDriversAndStats() {
+        try {
+          Utils.showLoading();
+          
+          // ONE API call for both drivers list and stats
+          const response = await api.getDrivers(this.filters);
+          
+          // Handle different response formats
+          if (Array.isArray(response)) {
+            this.drivers = response;
+          } else if (response && response.drivers) {
+            this.drivers = response.drivers;
+          } else if (response && response.data) {
+            this.drivers = Array.isArray(response.data) ? response.data : response.data.drivers || [];
+          } else {
+            this.drivers = [];
+          }
+          
+          console.log('Loaded drivers:', this.drivers.length);
+          
+          // Update drivers table
+          this.renderTable();
+          this.renderPagination();
+          document.getElementById('driversCount').textContent = this.drivers.length;
+          
+          // Update stats from the same data
+          const total = this.drivers.length;
+          const active = this.drivers.filter(d => d.status === 'active' || d.isActive).length;
+          const blocked = this.drivers.filter(d => d.status === 'blocked' || d.isBlocked).length;
+          const available = this.drivers.filter(d => d.status === 'available').length;
+          
+          document.getElementById('totalDrivers').textContent = total;
+          document.getElementById('activeDrivers').textContent = active;
+          document.getElementById('blockedDrivers').textContent = blocked;
+          document.getElementById('availableDrivers').textContent = available;
+          
+        } catch (error) {
+          console.error('Error loading data:', error);
+          
+          // Show user-friendly error message
+          if (error.message.includes('429') || error.message.includes('Too Many Requests')) {
+            Utils.showAlert('יותר מדי בקשות. נסה שוב בעוד רגע...', 'warning');
+          } else {
+            Utils.showAlert('שגיאה בטעינת נתונים: ' + error.message, 'error');
+          }
+          
+          this.drivers = [];
+          // Set defaults
+          document.getElementById('totalDrivers').textContent = '0';
+          document.getElementById('activeDrivers').textContent = '0';
+          document.getElementById('blockedDrivers').textContent = '0';
+          document.getElementById('availableDrivers').textContent = '0';
+        } finally {
+          Utils.hideLoading();
+        }
       },
       
       attachEventListeners() {
         // Add driver
         document.getElementById('addDriverBtn')?.addEventListener('click', () => this.openAddModal());
         
-        // Refresh
-        document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadDrivers());
+        // Refresh - force reload
+        document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadDriversAndStats());
         
         // Filters
         document.getElementById('filterStatus')?.addEventListener('change', () => this.applyFilters());
@@ -305,43 +630,49 @@
         });
       },
       
-      async loadStats() {
-        try {
-          const response = await api.getDrivers();
-          const drivers = response.drivers || response || [];
-          
-          const total = drivers.length;
-          const active = drivers.filter(d => d.status === 'active' || d.isActive).length;
-          const blocked = drivers.filter(d => d.status === 'blocked' || d.isBlocked).length;
-          const available = drivers.filter(d => d.status === 'available').length;
-          
-          document.getElementById('totalDrivers').textContent = total;
-          document.getElementById('activeDrivers').textContent = active;
-          document.getElementById('blockedDrivers').textContent = blocked;
-          document.getElementById('availableDrivers').textContent = available;
-        } catch (error) {
-          console.error('Error loading stats:', error);
-          // Set defaults on error
-          document.getElementById('totalDrivers').textContent = '0';
-          document.getElementById('activeDrivers').textContent = '0';
-          document.getElementById('blockedDrivers').textContent = '0';
-          document.getElementById('availableDrivers').textContent = '0';
-        }
-      },
       
-      async loadDrivers() {
+      async loadDrivers(forceRefresh = false) {
+        // If we already have drivers and not forcing refresh, just re-render
+        if (!forceRefresh && this.drivers && this.drivers.length > 0) {
+          this.renderTable();
+          this.renderPagination();
+          document.getElementById('driversCount').textContent = this.drivers.length;
+          return;
+        }
+        
+        // Otherwise, fetch fresh data
         try {
           Utils.showLoading();
           
           const response = await api.getDrivers(this.filters);
-          this.drivers = response.drivers || response;
+          
+          // Handle different response formats
+          if (Array.isArray(response)) {
+            this.drivers = response;
+          } else if (response && response.drivers) {
+            this.drivers = response.drivers;
+          } else if (response && response.data) {
+            this.drivers = Array.isArray(response.data) ? response.data : response.data.drivers || [];
+          } else {
+            this.drivers = [];
+          }
+          
+          console.log('Loaded drivers:', this.drivers.length);
           
           this.renderTable();
           this.renderPagination();
           
           document.getElementById('driversCount').textContent = this.drivers.length;
         } catch (error) {
-          Utils.showAlert('שגיאה בטעינת נהגים: ' + error.message, 'error');
+          console.error('Error loading drivers:', error);
+          
+          if (error.message.includes('429') || error.message.includes('Too Many Requests')) {
+            Utils.showAlert('יותר מדי בקשות. נסה שוב בעוד רגע...', 'warning');
+          } else {
+            Utils.showAlert('שגיאה בטעינת נהגים: ' + error.message, 'error');
+          }
+          
+          this.drivers = [];
         } finally {
           Utils.hideLoading();
         }
@@ -472,7 +803,415 @@
       },
       
       openAddModal() {
-         Utils.showAlert(`פיצ'ר הוספת נהג יבוא בקרוב!`, "info");
+        const html = `
+          <div class="modal-overlay" id="addDriverModal">
+            <div class="modal-content add-driver-modal" onclick="event.stopPropagation()" style="max-width: 700px;">
+              <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> הוספת נהג חדש</h2>
+                <button class="btn-icon" onclick="document.getElementById('addDriverModal').remove()">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="modal-body">
+                <form id="addDriverForm" class="add-driver-form">
+                  
+                  <!-- Step Indicator -->
+                  <div class="steps-indicator">
+                    <div class="step active" data-step="1">
+                      <div class="step-number">1</div>
+                      <div class="step-label">פרטים אישיים</div>
+                    </div>
+                    <div class="step" data-step="2">
+                      <div class="step-number">2</div>
+                      <div class="step-label">רכב</div>
+                    </div>
+                    <div class="step" data-step="3">
+                      <div class="step-number">3</div>
+                      <div class="step-label">מסמכים</div>
+                    </div>
+                  </div>
+                  
+                  <!-- Step 1: Personal Info -->
+                  <div class="form-step active" data-step="1">
+                    <h3><i class="fas fa-user"></i> פרטים אישיים</h3>
+                    
+                    <div class="form-group">
+                      <label for="driverName">
+                        <i class="fas fa-signature"></i>
+                        שם מלא *
+                      </label>
+                      <input type="text" id="driverName" name="name" required 
+                             placeholder="לדוגמה: יוסי כהן">
+                    </div>
+                    
+                    <div class="form-group">
+                      <label for="driverPhone">
+                        <i class="fas fa-phone"></i>
+                        טלפון *
+                      </label>
+                      <input type="tel" id="driverPhone" name="phone" required 
+                             placeholder="050-123-4567" pattern="05[0-9]-[0-9]{3}-[0-9]{4}">
+                      <small>פורמט: 050-123-4567</small>
+                    </div>
+                    
+                    <div class="form-group">
+                      <label for="driverIdNumber">
+                        <i class="fas fa-id-card"></i>
+                        תעודת זהות *
+                      </label>
+                      <input type="text" id="driverIdNumber" name="idNumber" required 
+                             placeholder="123456789" maxlength="9" pattern="[0-9]{9}">
+                      <small>9 ספרות</small>
+                    </div>
+                    
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label for="driverCity">
+                          <i class="fas fa-city"></i>
+                          עיר *
+                        </label>
+                        <input type="text" id="driverCity" name="city" required 
+                               placeholder="תל אביב">
+                      </div>
+                      
+                      <div class="form-group">
+                        <label for="driverArea">
+                          <i class="fas fa-map-marker-alt"></i>
+                          אזור פעילות *
+                        </label>
+                        <select id="driverArea" name="operatingArea" required>
+                          <option value="">בחר אזור...</option>
+                          <option value="north">צפון</option>
+                          <option value="center">מרכז</option>
+                          <option value="south">דרום</option>
+                          <option value="jerusalem">ירושלים</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Step 2: Vehicle Info -->
+                  <div class="form-step" data-step="2">
+                    <h3><i class="fas fa-car"></i> פרטי רכב</h3>
+                    
+                    <div class="form-group">
+                      <label for="carType">
+                        <i class="fas fa-car-side"></i>
+                        סוג רכב *
+                      </label>
+                      <select id="carType" name="carType" required>
+                        <option value="">בחר סוג רכב...</option>
+                        <option value="sedan">סדאן</option>
+                        <option value="minivan">מיניוואן</option>
+                        <option value="suv">SUV</option>
+                        <option value="van">טנדר</option>
+                      </select>
+                    </div>
+                    
+                    <div class="form-group">
+                      <label for="carNumber">
+                        <i class="fas fa-hashtag"></i>
+                        מספר רכב *
+                      </label>
+                      <input type="text" id="carNumber" name="carNumber" required 
+                             placeholder="12-345-67" pattern="[0-9]{2}-[0-9]{3}-[0-9]{2}">
+                      <small>פורמט: 12-345-67</small>
+                    </div>
+                    
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label for="carModel">
+                          <i class="fas fa-car"></i>
+                          דגם
+                        </label>
+                        <input type="text" id="carModel" name="carModel" 
+                               placeholder="טויוטה קורולה">
+                      </div>
+                      
+                      <div class="form-group">
+                        <label for="carYear">
+                          <i class="fas fa-calendar"></i>
+                          שנה
+                        </label>
+                        <input type="number" id="carYear" name="carYear" 
+                               placeholder="2020" min="2000" max="2025">
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Step 3: Documents -->
+                  <div class="form-step" data-step="3">
+                    <h3><i class="fas fa-file-image"></i> מסמכים (אופציונלי)</h3>
+                    <p class="form-hint">ניתן להעלות מסמכים כעת או מאוחר יותר</p>
+                    
+                    <div class="document-upload-grid">
+                      <div class="upload-box">
+                        <label for="profilePhoto" class="upload-label">
+                          <i class="fas fa-user-circle"></i>
+                          <span>תמונת פרופיל</span>
+                          <input type="file" id="profilePhoto" name="profilePhoto" 
+                                 accept="image/*" style="display: none;">
+                        </label>
+                        <div class="upload-preview" id="profilePhotoPreview"></div>
+                      </div>
+                      
+                      <div class="upload-box">
+                        <label for="licensePhoto" class="upload-label">
+                          <i class="fas fa-id-card"></i>
+                          <span>תעודת זהות / רישיון</span>
+                          <input type="file" id="licensePhoto" name="licensePhoto" 
+                                 accept="image/*" style="display: none;">
+                        </label>
+                        <div class="upload-preview" id="licensePhotoPreview"></div>
+                      </div>
+                      
+                      <div class="upload-box">
+                        <label for="carPhoto" class="upload-label">
+                          <i class="fas fa-car"></i>
+                          <span>תמונת רכב</span>
+                          <input type="file" id="carPhoto" name="carPhoto" 
+                                 accept="image/*" style="display: none;">
+                        </label>
+                        <div class="upload-preview" id="carPhotoPreview"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Navigation Buttons -->
+                  <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="prevStepBtn" style="display: none;">
+                      <i class="fas fa-arrow-right"></i>
+                      הקודם
+                    </button>
+                    
+                    <button type="button" class="btn btn-primary" id="nextStepBtn">
+                      הבא
+                      <i class="fas fa-arrow-left"></i>
+                    </button>
+                    
+                    <button type="submit" class="btn btn-success" id="submitDriverBtn" style="display: none;">
+                      <i class="fas fa-check"></i>
+                      הוסף נהג
+                    </button>
+                  </div>
+                  
+                </form>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', html);
+        this.initAddDriverForm();
+      },
+      
+      initAddDriverForm() {
+        let currentStep = 1;
+        const totalSteps = 3;
+        
+        // Step navigation
+        const nextBtn = document.getElementById('nextStepBtn');
+        const prevBtn = document.getElementById('prevStepBtn');
+        const submitBtn = document.getElementById('submitDriverBtn');
+        
+        const updateStepDisplay = () => {
+          // Update step indicators
+          document.querySelectorAll('.step').forEach(step => {
+            const stepNum = parseInt(step.dataset.step);
+            step.classList.toggle('active', stepNum === currentStep);
+            step.classList.toggle('completed', stepNum < currentStep);
+          });
+          
+          // Update form steps
+          document.querySelectorAll('.form-step').forEach(step => {
+            step.classList.toggle('active', parseInt(step.dataset.step) === currentStep);
+          });
+          
+          // Update buttons
+          prevBtn.style.display = currentStep > 1 ? 'block' : 'none';
+          nextBtn.style.display = currentStep < totalSteps ? 'block' : 'none';
+          submitBtn.style.display = currentStep === totalSteps ? 'block' : 'none';
+        };
+        
+        nextBtn.onclick = () => {
+          if (this.validateCurrentStep(currentStep)) {
+            currentStep++;
+            updateStepDisplay();
+          }
+        };
+        
+        prevBtn.onclick = () => {
+          currentStep--;
+          updateStepDisplay();
+        };
+        
+        // Form submission
+        document.getElementById('addDriverForm').onsubmit = async (e) => {
+          e.preventDefault();
+          await this.submitNewDriver();
+        };
+        
+        // Image preview handlers
+        ['profilePhoto', 'licensePhoto', 'carPhoto'].forEach(fieldId => {
+          const input = document.getElementById(fieldId);
+          const preview = document.getElementById(fieldId + 'Preview');
+          
+          input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                preview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
+                preview.classList.add('has-image');
+              };
+              reader.readAsDataURL(file);
+            }
+          };
+        });
+        
+        // Phone formatting
+        document.getElementById('driverPhone').oninput = (e) => {
+          let value = e.target.value.replace(/\D/g, '');
+          if (value.length >= 3) {
+            value = value.substring(0, 3) + '-' + value.substring(3);
+          }
+          if (value.length >= 7) {
+            value = value.substring(0, 7) + '-' + value.substring(7, 11);
+          }
+          e.target.value = value;
+        };
+        
+        // Car number formatting
+        document.getElementById('carNumber').oninput = (e) => {
+          let value = e.target.value.replace(/\D/g, '');
+          if (value.length >= 2) {
+            value = value.substring(0, 2) + '-' + value.substring(2);
+          }
+          if (value.length >= 6) {
+            value = value.substring(0, 6) + '-' + value.substring(6, 8);
+          }
+          e.target.value = value;
+        };
+      },
+      
+      validateCurrentStep(step) {
+        const currentStepElement = document.querySelector(`.form-step[data-step="${step}"]`);
+        const inputs = currentStepElement.querySelectorAll('input[required], select[required]');
+        
+        for (let input of inputs) {
+          if (!input.value.trim()) {
+            Utils.showAlert(`אנא מלא את השדה: ${input.previousElementSibling?.textContent || 'חסר'}`, 'warning');
+            input.focus();
+            return false;
+          }
+          
+          // Validate phone format
+          if (input.id === 'driverPhone' && !input.value.match(/^05[0-9]-[0-9]{3}-[0-9]{4}$/)) {
+            Utils.showAlert('פורמט טלפון שגוי. השתמש ב: 050-123-4567', 'warning');
+            input.focus();
+            return false;
+          }
+          
+          // Validate ID number
+          if (input.id === 'driverIdNumber') {
+            if (!input.value.match(/^[0-9]{9}$/)) {
+              Utils.showAlert('תעודת זהות חייבת להכיל 9 ספרות', 'warning');
+              input.focus();
+              return false;
+            }
+            if (!Utils.validateIsraeliId(input.value)) {
+              Utils.showAlert('תעודת זהות לא תקינה', 'warning');
+              input.focus();
+              return false;
+            }
+          }
+          
+          // Validate car number format
+          if (input.id === 'carNumber' && !input.value.match(/^[0-9]{2}-[0-9]{3}-[0-9]{2}$/)) {
+            Utils.showAlert('פורמט מספר רכב שגוי. השתמש ב: 12-345-67', 'warning');
+            input.focus();
+            return false;
+          }
+        }
+        
+        return true;
+      },
+      
+      async submitNewDriver() {
+        try {
+          Utils.showLoading('מוסיף נהג...');
+          
+          const formData = new FormData(document.getElementById('addDriverForm'));
+          
+          // Build driver object
+          const driverData = {
+            name: formData.get('name'),
+            phone: formData.get('phone'),
+            idNumber: formData.get('idNumber'),
+            city: formData.get('city'),
+            operatingArea: formData.get('operatingArea'),
+            carType: formData.get('carType'),
+            carNumber: formData.get('carNumber'),
+            carModel: formData.get('carModel'),
+            carYear: formData.get('carYear'),
+            status: 'active',
+            isActive: true,
+            documents: {}
+          };
+          
+          // Create driver
+          const newDriver = await api.createDriver(driverData);
+          
+          // Upload documents if provided
+          const uploads = [];
+          
+          if (formData.get('profilePhoto')?.size > 0) {
+            const photoFormData = new FormData();
+            photoFormData.append('document', formData.get('profilePhoto'));
+            photoFormData.append('type', 'profile');
+            uploads.push(
+              api.uploadDriverDocument(newDriver._id, photoFormData)
+            );
+          }
+          
+          if (formData.get('licensePhoto')?.size > 0) {
+            const licenseFormData = new FormData();
+            licenseFormData.append('document', formData.get('licensePhoto'));
+            licenseFormData.append('type', 'license');
+            uploads.push(
+              api.uploadDriverDocument(newDriver._id, licenseFormData)
+            );
+          }
+          
+          if (formData.get('carPhoto')?.size > 0) {
+            const carFormData = new FormData();
+            carFormData.append('document', formData.get('carPhoto'));
+            carFormData.append('type', 'car');
+            uploads.push(
+              api.uploadDriverDocument(newDriver._id, carFormData)
+            );
+          }
+          
+          // Wait for all uploads
+          if (uploads.length > 0) {
+            await Promise.all(uploads);
+          }
+          
+          Utils.hideLoading();
+          Utils.showAlert(`נהג ${driverData.name} נוסף בהצלחה!`, 'success');
+          
+          // Close modal
+          document.getElementById('addDriverModal')?.remove();
+          
+          // Refresh drivers list
+          await this.loadDriversAndStats();
+          
+        } catch (error) {
+          Utils.hideLoading();
+          console.error('Error adding driver:', error);
+          Utils.showAlert('שגיאה בהוספת נהג: ' + error.message, 'error');
+        }
       },
       
       async viewDriver(id) {
