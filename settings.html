@@ -166,10 +166,16 @@
                   <input type="number" class="form-control" value="30" id="rideTimeout">
                 </div>
                 
-                <button type="submit" class="btn btn-primary">
-                  <i class="fas fa-save"></i>
-                  שמור שינויים
-                </button>
+                <div style="display: flex; gap: 10px;">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    שמור שינויים
+                  </button>
+                  <button type="button" class="btn btn-secondary" id="testConnectionBtn">
+                    <i class="fas fa-plug"></i>
+                    בדוק חיבור לשרת
+                  </button>
+                </div>
               </form>
             </div>
           </div>
@@ -484,6 +490,9 @@
     const SettingsPage = {
       async init() {
         this.attachEventListeners();
+        await this.loadGeneralSettings();
+        await this.loadPricingSettings();
+        await this.loadNotificationSettings();
         await this.loadSystemHealth();
         await this.loadUserProfile();
       },
@@ -499,6 +508,9 @@
         document.getElementById('pricingForm')?.addEventListener('submit', (e) => this.savePricing(e));
         document.getElementById('notificationsForm')?.addEventListener('submit', (e) => this.saveNotifications(e));
         document.getElementById('profileForm')?.addEventListener('submit', (e) => this.saveProfile(e));
+        
+        // Test connection
+        document.getElementById('testConnectionBtn')?.addEventListener('click', () => this.testConnection());
         
         // System actions
         document.getElementById('createBackupBtn')?.addEventListener('click', () => this.createBackup());
@@ -576,19 +588,192 @@
         return `${days} ימים, ${hours} שעות, ${minutes} דקות`;
       },
       
+      async loadGeneralSettings() {
+        try {
+          const response = await fetch(CONFIG.API_URL + '/api/settings/general', {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('taxi_admin_token')}`
+            }
+          });
+          const settings = await response.json();
+          
+          // Fill form
+          document.getElementById('systemName').value = settings.companyName || '';
+          document.getElementById('supportPhone').value = settings.companyPhone || '';
+          document.getElementById('supportEmail').value = settings.companyEmail || '';
+        } catch (error) {
+          console.error('Error loading general settings:', error);
+        }
+      },
+      
+      async loadPricingSettings() {
+        try {
+          const response = await fetch(CONFIG.API_URL + '/api/settings/pricing', {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('taxi_admin_token')}`
+            }
+          });
+          const pricing = await response.json();
+          
+          // Fill form
+          document.getElementById('baseRidePrice').value = pricing.basePrice || 25;
+          document.getElementById('pricePerKm').value = pricing.pricePerKm || 5;
+          document.getElementById('pricePerMinute').value = pricing.pricePerMinute || 2;
+          document.getElementById('externalCommission').value = pricing.commissionPercent || 10;
+        } catch (error) {
+          console.error('Error loading pricing settings:', error);
+        }
+      },
+      
+      async loadNotificationSettings() {
+        try {
+          // Load from localStorage for now (server doesn't have this endpoint yet)
+          const saved = localStorage.getItem('notification_settings');
+          if (saved) {
+            const settings = JSON.parse(saved);
+            document.getElementById('notifyNewRide').checked = settings.notifyNewRide || false;
+            document.getElementById('notifyRideCancelled').checked = settings.notifyRideCancelled || false;
+            document.getElementById('notifyPaymentDue').checked = settings.notifyPaymentDue || false;
+            document.getElementById('notifyPaymentOverdue').checked = settings.notifyPaymentOverdue || false;
+            document.getElementById('emailDailyReport').checked = settings.emailDailyReport || false;
+            document.getElementById('emailWeeklyReport').checked = settings.emailWeeklyReport || false;
+            document.getElementById('notificationEmails').value = settings.notificationEmails || '';
+          }
+        } catch (error) {
+          console.error('Error loading notification settings:', error);
+        }
+      },
+      
       async saveGeneral(e) {
         e.preventDefault();
-        Utils.showAlert('הגדרות כלליות נשמרו בהצלחה', 'success');
+        
+        try {
+          Utils.showLoading('שומר הגדרות...');
+          
+          const settings = {
+            companyName: document.getElementById('systemName').value,
+            companyPhone: document.getElementById('supportPhone').value,
+            companyEmail: document.getElementById('supportEmail').value,
+            autoDispatch: document.getElementById('autoDispatch').checked,
+            enableRatings: document.getElementById('enableRatings').checked,
+            maxDriversPerRide: parseInt(document.getElementById('maxDriversPerRide').value),
+            rideTimeout: parseInt(document.getElementById('rideTimeout').value)
+          };
+          
+          const response = await fetch(CONFIG.API_URL + '/api/settings/general', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('taxi_admin_token')}`
+            },
+            body: JSON.stringify(settings)
+          });
+          
+          const result = await response.json();
+          
+          Utils.hideLoading();
+          
+          if (result.success) {
+            Utils.showAlert('✅ הגדרות כלליות נשמרו בהצלחה!', 'success');
+          } else {
+            throw new Error(result.error || 'שגיאה בשמירה');
+          }
+        } catch (error) {
+          Utils.hideLoading();
+          console.error('Error saving general settings:', error);
+          Utils.showAlert('❌ שגיאה בשמירת הגדרות: ' + error.message, 'error');
+        }
       },
       
       async savePricing(e) {
         e.preventDefault();
-        Utils.showAlert('הגדרות תמחור נשמרו בהצלחה', 'success');
+        
+        try {
+          Utils.showLoading('שומר תמחור...');
+          
+          const pricing = {
+            basePrice: parseFloat(document.getElementById('baseRidePrice').value),
+            pricePerKm: parseFloat(document.getElementById('pricePerKm').value),
+            pricePerMinute: parseFloat(document.getElementById('pricePerMinute').value),
+            commissionPercent: parseFloat(document.getElementById('externalCommission').value),
+            internalCommission: parseFloat(document.getElementById('internalCommission').value),
+            enableSurge: document.getElementById('enableSurge').checked
+          };
+          
+          const response = await fetch(CONFIG.API_URL + '/api/settings/pricing', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('taxi_admin_token')}`
+            },
+            body: JSON.stringify(pricing)
+          });
+          
+          const result = await response.json();
+          
+          Utils.hideLoading();
+          
+          if (result.success) {
+            Utils.showAlert('✅ הגדרות תמחור נשמרו בהצלחה!', 'success');
+          } else {
+            throw new Error(result.error || 'שגיאה בשמירה');
+          }
+        } catch (error) {
+          Utils.hideLoading();
+          console.error('Error saving pricing settings:', error);
+          Utils.showAlert('❌ שגיאה בשמירת תמחור: ' + error.message, 'error');
+        }
       },
       
       async saveNotifications(e) {
         e.preventDefault();
-        Utils.showAlert('הגדרות התראות נשמרו בהצלחה', 'success');
+        
+        try {
+          Utils.showLoading('שומר התראות...');
+          
+          const settings = {
+            notifyNewRide: document.getElementById('notifyNewRide').checked,
+            notifyRideCancelled: document.getElementById('notifyRideCancelled').checked,
+            notifyPaymentDue: document.getElementById('notifyPaymentDue').checked,
+            notifyPaymentOverdue: document.getElementById('notifyPaymentOverdue').checked,
+            emailDailyReport: document.getElementById('emailDailyReport').checked,
+            emailWeeklyReport: document.getElementById('emailWeeklyReport').checked,
+            notificationEmails: document.getElementById('notificationEmails').value
+          };
+          
+          // Save to localStorage (server endpoint doesn't exist yet)
+          localStorage.setItem('notification_settings', JSON.stringify(settings));
+          
+          Utils.hideLoading();
+          Utils.showAlert('✅ הגדרות התראות נשמרו בהצלחה!', 'success');
+        } catch (error) {
+          Utils.hideLoading();
+          console.error('Error saving notification settings:', error);
+          Utils.showAlert('❌ שגיאה בשמירת התראות: ' + error.message, 'error');
+        }
+      },
+      
+      async testConnection() {
+        try {
+          Utils.showLoading('בודק חיבור...');
+          
+          const response = await fetch(CONFIG.API_URL + '/api/settings/general', {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('taxi_admin_token')}`
+            }
+          });
+          
+          Utils.hideLoading();
+          
+          if (response.ok) {
+            Utils.showAlert('✅ החיבור לשרת תקין!', 'success');
+          } else {
+            Utils.showAlert('⚠️ החיבור נכשל - סטטוס: ' + response.status, 'warning');
+          }
+        } catch (error) {
+          Utils.hideLoading();
+          Utils.showAlert('❌ שגיאת חיבור: ' + error.message, 'error');
+        }
       },
       
       async saveProfile(e) {
@@ -630,7 +815,7 @@
       },
       
       viewLogs() {
-        Utils.showAlert('פיצ'ר צפייה בלוגים יבוא בקרוב!', 'info');
+        Utils.showAlert(`פיצ'ר הוספת נהג יבוא בקרוב!`, "info");
       },
       
       async clearCache() {
@@ -644,7 +829,7 @@
       },
       
       addUser() {
-        Utils.showAlert('פיצ'ר הוספת משתמש יבוא בקרוב!', 'info');
+         Utils.showAlert(`פיצ'ר הוספת נהג יבוא בקרוב!`, "info");
       }
     };
     

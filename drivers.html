@@ -535,6 +535,7 @@
       totalPages: 0,
       drivers: [],
       filters: {},
+      _loading: false, // Prevent concurrent API calls
       
       async init() {
         this.attachEventListeners();
@@ -543,6 +544,14 @@
       },
       
       async loadDriversAndStats() {
+        // Prevent multiple simultaneous calls
+        if (this._loading) {
+          console.log('Already loading, skipping...');
+          return;
+        }
+        
+        this._loading = true;
+        
         try {
           Utils.showLoading();
           
@@ -596,18 +605,40 @@
           document.getElementById('availableDrivers').textContent = '0';
         } finally {
           Utils.hideLoading();
+          this._loading = false; // Reset flag
         }
       },
       
       attachEventListeners() {
         // Add driver
-        document.getElementById('addDriverBtn')?.addEventListener('click', () => this.openAddModal());
+        const addBtn = document.getElementById('addDriverBtn');
+        if (addBtn) {
+          addBtn.addEventListener('click', () => this.openAddModal());
+        }
         
-        // Refresh - force reload
-        document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadDriversAndStats());
+        // Refresh - with debounce to prevent rapid clicks
+        const refreshBtn = document.getElementById('refreshBtn');
+        if (refreshBtn) {
+          let refreshTimeout;
+          refreshBtn.addEventListener('click', () => {
+            clearTimeout(refreshTimeout);
+            refreshTimeout = setTimeout(() => {
+              this.loadDriversAndStats();
+            }, 300);
+          });
+        }
         
-        // Filters
-        document.getElementById('filterStatus')?.addEventListener('change', () => this.applyFilters());
+        // Filters - with debounce
+        const filterStatus = document.getElementById('filterStatus');
+        if (filterStatus) {
+          let filterTimeout;
+          filterStatus.addEventListener('change', () => {
+            clearTimeout(filterTimeout);
+            filterTimeout = setTimeout(() => {
+              this.applyFilters();
+            }, 300);
+          });
+        }
         document.getElementById('filterRegion')?.addEventListener('change', () => this.applyFilters());
         document.getElementById('filterRating')?.addEventListener('change', () => this.applyFilters());
         document.getElementById('searchQuery')?.addEventListener('input', Utils.debounce(() => this.applyFilters(), 300));
@@ -1144,24 +1175,26 @@
           
           const formData = new FormData(document.getElementById('addDriverForm'));
           
-          // Build driver object
+          // Create driver with all available data
+          // Server will accept: name, phone, licenseNumber
+          // Server will ignore: other fields (but driver will still be created)
           const driverData = {
             name: formData.get('name'),
             phone: formData.get('phone'),
+            licenseNumber: formData.get('idNumber'),
+            // Additional fields (server may ignore but won't fail)
             idNumber: formData.get('idNumber'),
             city: formData.get('city'),
-            operatingArea: formData.get('operatingArea'),
-            carType: formData.get('carType'),
-            carNumber: formData.get('carNumber'),
-            carModel: formData.get('carModel'),
-            carYear: formData.get('carYear'),
-            status: 'active',
-            isActive: true,
-            documents: {}
+            workArea: formData.get('operatingArea'),
+            vehicleType: formData.get('carType'),
+            vehicleNumber: formData.get('carNumber'),
+            vehicleModel: formData.get('carModel'),
+            vehicleYear: formData.get('carYear') ? parseInt(formData.get('carYear')) : null
           };
           
-          // Create driver
+          console.log('📤 Creating driver:', driverData);
           const newDriver = await api.createDriver(driverData);
+          console.log('✅ Driver created:', newDriver);
           
           // Upload documents if provided
           const uploads = [];
@@ -1199,7 +1232,7 @@
           }
           
           Utils.hideLoading();
-          Utils.showAlert(`נהג ${driverData.name} נוסף בהצלחה!`, 'success');
+          Utils.showAlert(`✅ נהג ${formData.get('name')} נוסף בהצלחה!`, 'success');
           
           // Close modal
           document.getElementById('addDriverModal')?.remove();
@@ -1738,55 +1771,11 @@
     document.getElementById('addDriverForm').reset();
   }
   
-  document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('addDriverForm');
-    if (form) {
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const driverData = {
-          name: document.getElementById('newDriverName').value,
-          phone: document.getElementById('newDriverPhone').value,
-          licenseNumber: document.getElementById('newDriverLicense').value,
-          carNumber: document.getElementById('newCarNumber').value,
-          carModel: document.getElementById('newCarModel').value,
-          carYear: document.getElementById('newCarYear').value || null,
-          notes: document.getElementById('newDriverNotes').value || '',
-          status: document.getElementById('newDriverActive').checked ? 'active' : 'inactive'
-        };
-        
-        try {
-          const token = localStorage.getItem('taxi_admin_token');
-          
-          const response = await fetch('https://taxiserver-system.onrender.com/drivers', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(driverData)
-          });
-          
-          if (!response.ok) throw new Error('Failed');
-          
-          alert('נהג נוסף בהצלחה!');
-          closeAddDriverModal();
-          window.location.reload();
-          
-        } catch (error) {
-          alert('שגיאה בהוספת נהג');
-        }
-      });
-    }
-    
-    const addBtn = document.getElementById('addDriverBtn');
-    if (addBtn) {
-      addBtn.onclick = openAddDriverModal;
-    }
-  });
-  
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeAddDriverModal();
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('addDriverModal');
+      if (modal) modal.remove();
+    }
   });
 </script>
 </body>

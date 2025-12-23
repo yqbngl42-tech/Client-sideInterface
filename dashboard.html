@@ -49,6 +49,19 @@
       </header>
 
       <div class="content-area">
+        <!-- BIG CREATE RIDE BUTTON -->
+        <div class="hero-action-card">
+          <div class="hero-content">
+            <h2><i class="fas fa-plus-circle"></i> צור נסיעה חדשה</h2>
+            <p>הוסף נסיעה למערכת ושלח אותה לנהגים זמינים</p>
+          </div>
+          <button class="btn btn-hero" id="createRideHeroBtn">
+            <i class="fas fa-taxi"></i>
+            <span>נסיעה חדשה</span>
+            <i class="fas fa-arrow-left"></i>
+          </button>
+        </div>
+
         <!-- STATS CARDS -->
         <div class="stats-grid">
           <div class="stat-card">
@@ -425,8 +438,124 @@
       }
     };
     
-    document.addEventListener('DOMContentLoaded', () => DashboardPage.init());
+    // Hero create ride button
+    document.addEventListener('DOMContentLoaded', () => {
+      DashboardPage.init();
+      
+      document.getElementById('createRideHeroBtn')?.addEventListener('click', () => {
+        window.location.href = 'rides.html?create=true';
+      });
+    });
   </script>
+  
+  <style>
+    /* ========================================
+       HERO ACTION CARD
+       ======================================== */
+    .hero-action-card {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-xl);
+      color: white;
+      position: relative;
+      overflow: hidden;
+      animation: slideIn 0.6s ease;
+    }
+    
+    .hero-action-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -10%;
+      width: 400px;
+      height: 400px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    .hero-content {
+      position: relative;
+      z-index: 1;
+    }
+    
+    .hero-content h2 {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .hero-content p {
+      font-size: 16px;
+      opacity: 0.95;
+    }
+    
+    .btn-hero {
+      background: white;
+      color: var(--primary);
+      padding: 18px 40px;
+      font-size: 20px;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      transition: all var(--transition);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      position: relative;
+      z-index: 1;
+    }
+    
+    .btn-hero:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+    }
+    
+    .btn-hero i:first-child {
+      font-size: 28px;
+    }
+    
+    .btn-hero i:last-child {
+      transition: transform var(--transition);
+    }
+    
+    .btn-hero:hover i:last-child {
+      transform: translateX(-5px);
+    }
+    
+    @media (max-width: 768px) {
+      .hero-action-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 30px 20px;
+      }
+      
+      .hero-content h2 {
+        font-size: 24px;
+        justify-content: center;
+      }
+      
+      .hero-content p {
+        font-size: 14px;
+      }
+      
+      .btn-hero {
+        margin-top: 20px;
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
   
   <style>
     .modal-overlay {
