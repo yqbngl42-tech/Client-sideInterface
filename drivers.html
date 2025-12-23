@@ -307,11 +307,12 @@
       
       async loadStats() {
         try {
-          const drivers = await api.getDrivers();
+          const response = await api.getDrivers();
+          const drivers = response.drivers || response || [];
           
           const total = drivers.length;
-          const active = drivers.filter(d => d.status === 'active').length;
-          const blocked = drivers.filter(d => d.status === 'blocked').length;
+          const active = drivers.filter(d => d.status === 'active' || d.isActive).length;
+          const blocked = drivers.filter(d => d.status === 'blocked' || d.isBlocked).length;
           const available = drivers.filter(d => d.status === 'available').length;
           
           document.getElementById('totalDrivers').textContent = total;
@@ -320,6 +321,11 @@
           document.getElementById('availableDrivers').textContent = available;
         } catch (error) {
           console.error('Error loading stats:', error);
+          // Set defaults on error
+          document.getElementById('totalDrivers').textContent = '0';
+          document.getElementById('activeDrivers').textContent = '0';
+          document.getElementById('blockedDrivers').textContent = '0';
+          document.getElementById('availableDrivers').textContent = '0';
         }
       },
       
@@ -466,7 +472,7 @@
       },
       
       openAddModal() {
-        Utils.showAlert(`פיצ'ר הוספת נהג יבוא בקרוב!`, "info");
+         Utils.showAlert(`פיצ'ר הוספת נהג יבוא בקרוב!`, "info");
       },
       
       async viewDriver(id) {
@@ -634,7 +640,7 @@
       },
       
       editDriver(id) {
-        Utils.showAlert(`פיצ'ר הוספת נהג יבוא בקרוב!`, "info");
+         Utils.showAlert(`פיצ'ר הוספת נהג יבוא בקרוב!`, "info");
       },
       
       async toggleBlock(id, currentStatus) {
