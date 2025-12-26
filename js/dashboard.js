@@ -233,12 +233,12 @@ function setupEventListeners() {
   document.getElementById('logoutBtn').addEventListener('click', async (e) => {
     e.preventDefault();
     
-    const confirmed = await Utils.showConfirm('האם אתה בטוח שברצונך להתנתק?', 'התנתקות');
+    const confirmed = await Utils.showConfirm(MESSAGES.CONFIRM_3, 'התנתקות');
     
     if (confirmed) {
       try {
         await api.logout();
-        Utils.showNotification('התנתקת בהצלחה', 'success');
+        Utils.showNotification(MESSAGES.SUCCESS_15, 'success');
         setTimeout(() => {
           window.location.href = '/index.html';
         }, 500);
@@ -258,6 +258,6 @@ function setupEventListeners() {
     await loadDashboard();
     
     btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
-    Utils.showNotification('נתונים עודכנו', 'success');
+    Utils.showNotification(MESSAGES.MSG_20, 'success');
   });
 }

@@ -50,6 +50,7 @@
   <!-- Scripts -->
   <script src="js/config.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/messages.js"></script>
   <script src="js/utils.js"></script>
   <script>
     // ===============================================
@@ -80,7 +81,7 @@
       const password = passwordInput.value.trim();
       
       if (!password) {
-        Utils.showNotification('נא להזין סיסמה', 'error');
+        Utils.showNotification(MESSAGES.MSG_19, 'error');
         return;
       }
       
@@ -91,7 +92,7 @@
         // Login via API
         const result = await api.login(password);
         
-        Utils.showNotification('התחברת בהצלחה!', 'success');
+        Utils.showNotification(MESSAGES.SUCCESS_14, 'success');
         
         // Redirect to dashboard
         setTimeout(() => {
@@ -100,7 +101,7 @@
         
       } catch (error) {
         stopLoading();
-        Utils.showNotification('סיסמה שגויה', 'error');
+        Utils.showNotification(MESSAGES.MSG_21, 'error');
         passwordInput.value = '';
         passwordInput.focus();
       }

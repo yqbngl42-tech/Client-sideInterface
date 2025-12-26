@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/dark-mode.css">
+  <link rel="stylesheet" href="css/help-button.css">
+  <link rel="stylesheet" href="css/search-component.css">
 </head>
 <body>
   <div class="dashboard-container">
@@ -55,7 +57,11 @@
         </a>
         
         <li class="menu-section-title">מערכת</li>
-        <a href="settings.html" class="menu-item active">
+        <a href="system.html" class="menu-item">
+          <i class="fas fa-cogs"></i>
+          <span>ניהול מערכת</span>
+        </a>
+        <a href="settings.html" class="menu-item">
           <i class="fas fa-cog"></i>
           <span>הגדרות</span>
         </a>
@@ -82,6 +88,65 @@
           </button>
         </div>
       </header>
+      <!-- 🆕 SEARCH COMPONENT -->
+      <div class="search-container">
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input 
+            type="text" 
+            id="globalSearch" 
+            class="search-input"
+            placeholder="חפש הגדרת מערכת, תיאור או קטגוריה..."
+            autocomplete="off">
+          <button class="search-clear" id="clearSearch" style="display: none;">
+            <i class="fas fa-times"></i>
+          </button>
+          <button class="search-advanced" id="advancedSearch">
+            <i class="fas fa-sliders-h"></i> סינון מתקדם
+          </button>
+        </div>
+        
+        <div class="advanced-filters" id="advancedFilters" style="display: none;">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label><i class="fas fa-filter"></i> קטגוריה</label>
+              <select id="filter_category" class="filter-select">
+                <option value="">הכל</option>
+                <option value="general">כללי</option>
+                <option value="security">אבטחה</option>
+                <option value="api">API</option>
+                <option value="notifications">התראות</option>
+                <option value="payments">תשלומים</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label><i class="fas fa-filter"></i> סטטוס</label>
+              <select id="filter_status" class="filter-select">
+                <option value="">הכל</option>
+                <option value="active">פעיל</option>
+                <option value="inactive">לא פעיל</option>
+              </select>
+            </div>
+          </div>
+          
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+            <button class="btn btn-sm btn-secondary" onclick="SearchComponent.resetFilters()">
+              <i class="fas fa-undo"></i> אפס סינונים
+            </button>
+            <button class="btn btn-sm btn-primary" onclick="SearchComponent.applyAdvancedFilters()">
+              <i class="fas fa-check"></i> החל סינון
+            </button>
+          </div>
+        </div>
+        
+        <div class="search-results-info" id="searchInfo" style="display: none;">
+          <span id="resultsCount">נמצאו 0 תוצאות</span>
+          <button class="btn-link" id="resetFilters">אפס חיפוש</button>
+        </div>
+      </div>
+
+
 
       <!-- CONTENT -->
       <div class="content-area">
@@ -477,6 +542,7 @@
 
   <!-- SCRIPTS -->
   <script src="js/config.js"></script>
+  <script src="js/messages.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/api.js"></script>
   <script src="js/theme.js"></script>
@@ -495,9 +561,43 @@
         await this.loadNotificationSettings();
         await this.loadSystemHealth();
         await this.loadUserProfile();
+    this.initializeSearch();
       },
       
-      attachEventListeners() {
+    
+  initializeSearch() {
+    SearchComponent.init({
+      searchFields: ['name', 'description', 'category', 'key'],
+      onSearch: (term, filters) => this.searchSettings(term, filters),
+      highlightResults: false
+    });
+  },
+  
+  searchSettings(searchTerm, filters) {
+    const categoryFilter = document.getElementById('filter_category')?.value || '';
+    const statusFilter = document.getElementById('filter_status')?.value || '';
+    
+    this.filteredSettings = this.settings.filter(item => {
+      const matchesSearch = SearchComponent.searchInFields(
+        item,
+        searchTerm,
+        ['name', 'description', 'category', 'key']
+      );
+      
+      const matchesCategory = !categoryFilter || item.category === categoryFilter;
+      const matchesStatus = !statusFilter || item.status === statusFilter;
+      
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
+    
+    this.currentPage = 1;
+    this.renderTable();
+    this.renderPagination();
+    
+    return this.filteredSettings;
+  },
+  
+  attachEventListeners() {
         // Tabs
         document.querySelectorAll('.tab-btn').forEach(btn => {
           btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
@@ -674,14 +774,14 @@
           Utils.hideLoading();
           
           if (result.success) {
-            Utils.showAlert('✅ הגדרות כלליות נשמרו בהצלחה!', 'success');
+            Utils.showAlert(MESSAGES.SUCCESS_20, 'success');
           } else {
             throw new Error(result.error || 'שגיאה בשמירה');
           }
         } catch (error) {
           Utils.hideLoading();
           console.error('Error saving general settings:', error);
-          Utils.showAlert('❌ שגיאה בשמירת הגדרות: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_28 + error.message, 'error');
         }
       },
       
@@ -714,14 +814,14 @@
           Utils.hideLoading();
           
           if (result.success) {
-            Utils.showAlert('✅ הגדרות תמחור נשמרו בהצלחה!', 'success');
+            Utils.showAlert(MESSAGES.SUCCESS_21, 'success');
           } else {
             throw new Error(result.error || 'שגיאה בשמירה');
           }
         } catch (error) {
           Utils.hideLoading();
           console.error('Error saving pricing settings:', error);
-          Utils.showAlert('❌ שגיאה בשמירת תמחור: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_30 + error.message, 'error');
         }
       },
       
@@ -745,11 +845,11 @@
           localStorage.setItem('notification_settings', JSON.stringify(settings));
           
           Utils.hideLoading();
-          Utils.showAlert('✅ הגדרות התראות נשמרו בהצלחה!', 'success');
+          Utils.showAlert(MESSAGES.SUCCESS_19, 'success');
         } catch (error) {
           Utils.hideLoading();
           console.error('Error saving notification settings:', error);
-          Utils.showAlert('❌ שגיאה בשמירת התראות: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_29 + error.message, 'error');
         }
       },
       
@@ -766,13 +866,13 @@
           Utils.hideLoading();
           
           if (response.ok) {
-            Utils.showAlert('✅ החיבור לשרת תקין!', 'success');
+            Utils.showAlert(MESSAGES.SUCCESS_22, 'success');
           } else {
-            Utils.showAlert('⚠️ החיבור נכשל - סטטוס: ' + response.status, 'warning');
+            Utils.showAlert(MESSAGES.ERROR_24 + response.status, 'warning');
           }
         } catch (error) {
           Utils.hideLoading();
-          Utils.showAlert('❌ שגיאת חיבור: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_31 + error.message, 'error');
         }
       },
       
@@ -784,33 +884,33 @@
         const confirmPassword = document.getElementById('confirmPassword').value;
         
         if (newPassword && newPassword !== confirmPassword) {
-          Utils.showAlert('הסיסמאות אינן תואמות', 'error');
+          Utils.showAlert(MESSAGES.MSG_4, 'error');
           return;
         }
         
         if (newPassword) {
           try {
             await API.changePassword(currentPassword, newPassword);
-            Utils.showAlert('הסיסמה שונתה בהצלחה', 'success');
+            Utils.showAlert(MESSAGES.SUCCESS_10, 'success');
             document.getElementById('currentPassword').value = '';
             document.getElementById('newPassword').value = '';
             document.getElementById('confirmPassword').value = '';
           } catch (error) {
-            Utils.showAlert('שגיאה בשינוי סיסמה: ' + error.message, 'error');
+            Utils.showAlert(MESSAGES.ERROR_20 + error.message, 'error');
           }
         } else {
-          Utils.showAlert('פרופיל נשמר בהצלחה', 'success');
+          Utils.showAlert(MESSAGES.SUCCESS_18, 'success');
         }
       },
       
       async createBackup() {
-        if (!confirm('האם אתה בטוח שברצונך ליצור גיבוי?')) return;
+        if (!confirm(MESSAGES.CONFIRM_4)) return;
         
         try {
           await API.createBackup();
-          Utils.showAlert('הגיבוי נוצר בהצלחה', 'success');
+          Utils.showAlert(MESSAGES.SUCCESS_3, 'success');
         } catch (error) {
-          Utils.showAlert('שגיאה ביצירת גיבוי: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_18 + error.message, 'error');
         }
       },
       
@@ -819,13 +919,13 @@
       },
       
       async clearCache() {
-        if (!confirm('האם אתה בטוח שברצונך לנקות את ה-Cache?')) return;
-        Utils.showAlert('Cache נוקה בהצלחה', 'success');
+        if (!confirm(MESSAGES.CONFIRM_5)) return;
+        Utils.showAlert(MESSAGES.SUCCESS_1, 'success');
       },
       
       async restartServer() {
-        if (!confirm('האם אתה בטוח שברצונך לאתחל את השרת? פעולה זו תנתק את כל המשתמשים.')) return;
-        Utils.showAlert('שרת מאתחל... אנא המתן', 'info');
+        if (!confirm(MESSAGES.CONFIRM_2)) return;
+        Utils.showAlert(MESSAGES.MSG_30, 'info');
       },
       
       addUser() {
@@ -896,5 +996,9 @@
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
+
+  <!-- Help System -->
+  <script src="js/help-button.js"></script>
+  <script src="js/search-component.js"></script>
 </body>
 </html>

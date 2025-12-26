@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/dark-mode.css">
+   <link rel="stylesheet" href="css/help-button.css">
+  <link rel="stylesheet" href="css/search-component.css">
 </head>
 <body>
   <div class="dashboard-container">
@@ -25,7 +27,14 @@
         <a href="messages.html" class="menu-item"><i class="fas fa-envelope"></i><span>הודעות</span></a>
         <a href="reports.html" class="menu-item"><i class="fas fa-chart-bar"></i><span>דוחות</span></a>
         <li class="menu-section-title">מערכת</li>
-        <a href="settings.html" class="menu-item"><i class="fas fa-cog"></i><span>הגדרות</span></a>
+        <a href="system.html" class="menu-item">
+          <i class="fas fa-cogs"></i>
+          <span>ניהול מערכת</span>
+        </a>
+        <a href="settings.html" class="menu-item">
+          <i class="fas fa-cog"></i>
+          <span>הגדרות</span>
+        </a>
         <a href="#" class="menu-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>התנתק</span></a>
       </ul>
     </aside>
@@ -41,6 +50,75 @@
           <button class="btn-icon" id="refreshBtn"><i class="fas fa-sync-alt"></i></button>
         </div>
       </header>
+      <!-- 🆕 SEARCH COMPONENT -->
+      <div class="search-container">
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input 
+            type="text" 
+            id="globalSearch" 
+            class="search-input"
+            placeholder="חפש לפי מספר נסיעה, שם נוסע, טלפון, נהג או כתובת..."
+            autocomplete="off">
+          <button class="search-clear" id="clearSearch" style="display: none;">
+            <i class="fas fa-times"></i>
+          </button>
+          <button class="search-advanced" id="advancedSearch">
+            <i class="fas fa-sliders-h"></i> סינון מתקדם
+          </button>
+        </div>
+        
+        <div class="advanced-filters" id="advancedFilters" style="display: none;">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label><i class="fas fa-info-circle"></i> סטטוס</label>
+              <select id="filter_status" class="filter-select">
+                <option value="">הכל</option>
+                <option value="pending">ממתין</option>
+                <option value="active">פעיל</option>
+                <option value="completed">הושלם</option>
+                <option value="cancelled">בוטל</option>
+              </select>
+            </div>
+            
+            <div class="filter-group">
+              <label><i class="fas fa-calendar"></i> תאריך מ-</label>
+              <input type="date" id="filter_dateFrom" class="filter-input">
+            </div>
+            
+            <div class="filter-group">
+              <label><i class="fas fa-calendar"></i> תאריך עד</label>
+              <input type="date" id="filter_dateTo" class="filter-input">
+            </div>
+            
+            <div class="filter-group">
+              <label><i class="fas fa-shekel-sign"></i> מחיר מינימלי</label>
+              <input type="number" id="filter_minPrice" class="filter-input" placeholder="₪" min="0">
+            </div>
+            
+            <div class="filter-group">
+              <label><i class="fas fa-shekel-sign"></i> מחיר מקסימלי</label>
+              <input type="number" id="filter_maxPrice" class="filter-input" placeholder="₪" min="0">
+            </div>
+          </div>
+          
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+            <button class="btn btn-sm btn-secondary" onclick="SearchComponent.resetFilters()">
+              <i class="fas fa-undo"></i> אפס סינונים
+            </button>
+            <button class="btn btn-sm btn-primary" onclick="SearchComponent.applyAdvancedFilters()">
+              <i class="fas fa-check"></i> החל סינון
+            </button>
+          </div>
+        </div>
+        
+        <div class="search-results-info" id="searchInfo" style="display: none;">
+          <span id="resultsCount">נמצאו 0 תוצאות</span>
+          <button class="btn-link" id="resetFilters">אפס חיפוש</button>
+        </div>
+      </div>
+
+
 
       <div class="content-area">
         <div class="card">
@@ -145,6 +223,7 @@
   </div>
 
   <script src="js/config.js"></script>
+  <script src="js/messages.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/api.js"></script>
   <script src="js/theme.js"></script>
@@ -156,12 +235,63 @@
       currentPage: 1,
       pageSize: 25,
       rides: [],
+      filteredRides: [],
       filters: {},
       
       async init() {
+    try {
+
         this.attachEventListeners();
         await this.loadRides();
         await this.loadDriversFilter();
+        this.initializeSearch();
+          } catch (error) {
+      console.error('Error in init:', error);
+      Utils.showError('שגיאה. אנא נסה שוב.');
+    }
+  },
+      
+
+      initializeSearch() {
+        SearchComponent.init({
+          searchFields: ['rideNumber', 'passenger.name', 'passenger.phone', 'assignedDriver.name', 'pickup', 'destination'],
+          onSearch: (term, filters) => this.searchRides(term, filters),
+          highlightResults: false
+        });
+      },
+      
+      searchRides(searchTerm, filters) {
+        const statusFilter = document.getElementById('filter_status')?.value || '';
+        const dateFrom = document.getElementById('filter_dateFrom')?.value || '';
+        const dateTo = document.getElementById('filter_dateTo')?.value || '';
+        const minPrice = document.getElementById('filter_minPrice')?.value || '';
+        const maxPrice = document.getElementById('filter_maxPrice')?.value || '';
+        
+        this.filteredRides = this.rides.filter(ride => {
+          const matchesSearch = SearchComponent.searchInFields(
+            ride,
+            searchTerm,
+            ['rideNumber', 'passenger.name', 'passenger.phone', 'assignedDriver.name', 'pickup', 'destination']
+          );
+          
+          const matchesStatus = !statusFilter || ride.status === statusFilter;
+          
+          const rideDate = new Date(ride.createdAt || ride.date || ride.scheduledTime);
+          const matchesDateFrom = !dateFrom || rideDate >= new Date(dateFrom);
+          const matchesDateTo = !dateTo || rideDate <= new Date(dateTo + 'T23:59:59');
+          
+          const ridePrice = parseFloat(ride.fare || ride.price || 0);
+          const matchesMinPrice = !minPrice || ridePrice >= parseFloat(minPrice);
+          const matchesMaxPrice = !maxPrice || ridePrice <= parseFloat(maxPrice);
+          
+          return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo && matchesMinPrice && matchesMaxPrice;
+        });
+        
+        this.currentPage = 1;
+        this.renderTable();
+        this.renderPagination();
+        
+        return this.filteredRides;
       },
       
       attachEventListeners() {
@@ -215,7 +345,7 @@
           this.renderPagination();
           document.getElementById('ridesCount').textContent = this.rides.length;
         } catch (error) {
-          Utils.showAlert('שגיאה בטעינת נסיעות: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_12 + error.message, 'error');
         } finally {
           Utils.hideLoading();
         }
@@ -223,9 +353,13 @@
       
       renderTable() {
         const tbody = document.getElementById('ridesTableBody');
+        
+        const hasActiveSearch = SearchComponent.searchTerm || Object.keys(SearchComponent.filters).length > 0;
+        const ridesToShow = hasActiveSearch ? this.filteredRides : this.rides;
+        
         const start = (this.currentPage - 1) * this.pageSize;
         const end = start + this.pageSize;
-        const pageRides = this.rides.slice(start, end);
+        const pageRides = ridesToShow.slice(start, end);
         
         if (pageRides.length === 0) {
           tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">אין נסיעות</td></tr>';
@@ -262,7 +396,9 @@
       },
       
       renderPagination() {
-        const totalPages = Math.ceil(this.rides.length / this.pageSize);
+        const hasActiveSearch = SearchComponent.searchTerm || Object.keys(SearchComponent.filters).length > 0;
+        const ridesToShow = hasActiveSearch ? this.filteredRides : this.rides;
+        const totalPages = Math.ceil(ridesToShow.length / this.pageSize);
         const container = document.getElementById('paginationContainer');
         const pagination = document.getElementById('pagination');
         
@@ -486,7 +622,7 @@
           
         } catch (error) {
           console.error('Error creating ride:', error);
-          Utils.showAlert('❌ שגיאה ביצירת נסיעה: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_26 + error.message, 'error');
           
           const submitBtn = document.getElementById('submitRideBtn');
           if (submitBtn) {
@@ -622,7 +758,7 @@
             });
           });
         } catch (error) {
-          Utils.showAlert('שגיאה: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_23 + error.message, 'error');
         }
       },
       
@@ -653,13 +789,19 @@
       },
       
       async redispatch(id) {
-        if (!confirm('האם לשלוח מחדש לנהגים?')) return;
+    try {
+
+        if (!confirm(MESSAGES.CONFIRM_10)) return;
         try {
           await API.redispatchRide(id);
-          Utils.showAlert('הנסיעה נשלחה מחדש', 'success');
+          Utils.showAlert(MESSAGES.MSG_3, 'success');
           await this.loadRides();
-        } catch (error) {
-          Utils.showAlert('שגיאה: ' + error.message, 'error');
+            } catch (error) {
+      console.error('Error in redispatch:', error);
+      Utils.showError('שגיאה. אנא נסה שוב.');
+    }
+  } catch (error) {
+          Utils.showAlert(MESSAGES.ERROR_23 + error.message, 'error');
         }
       },
       
@@ -676,7 +818,7 @@
           document.querySelector('.modal-overlay')?.remove();
           await this.loadRides();
         } catch (error) {
-          Utils.showAlert('שגיאה: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_23 + error.message, 'error');
         }
       },
       
@@ -688,13 +830,13 @@
         const severity = prompt('חומרה (low/medium/high):') || 'medium';
         
         // TODO: Call API
-        Utils.showAlert('הבעיה דווחה', 'success');
+        Utils.showAlert(MESSAGES.ERROR_1, 'success');
       },
       
       showBulkActions() {
         const selected = Array.from(document.querySelectorAll('.ride-checkbox:checked')).map(cb => cb.dataset.id);
         if (selected.length === 0) {
-          Utils.showAlert('בחר נסיעות תחילה', 'warning');
+          Utils.showAlert(MESSAGES.MSG_2, 'warning');
           return;
         }
         
@@ -708,7 +850,7 @@
           this.exportRides(selected);
         } else if (action === '3') {
           if (confirm(`למחוק ${selected.length} נסיעות?`)) {
-            Utils.showAlert('מוחק...', 'info');
+            Utils.showAlert(MESSAGES.MSG_10, 'info');
           }
         }
       },
@@ -733,7 +875,7 @@
           
           Utils.exportToExcel(data, 'נסיעות_' + new Date().toISOString().split('T')[0]);
         } catch (error) {
-          Utils.showAlert('שגיאה בייצוא: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_17 + error.message, 'error');
         }
       }
     };
@@ -1018,5 +1160,9 @@
       to { transform: translateY(0); opacity: 1; }
     }
   </style>
+
+  <!-- Help System -->
+  <script src="js/help-button.js"></script>
+  <script src="js/search-component.js"></script>
 </body>
 </html>

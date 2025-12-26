@@ -13,7 +13,7 @@ const DriverProfile = {
     this.driverId = params.get('id');
     
     if (!this.driverId) {
-      Utils.showAlert('מזהה נהג חסר', 'error');
+      Utils.showAlert(MESSAGES.MSG_11, 'error');
       setTimeout(() => window.location.href = 'drivers.html', 1500);
       return;
     }
@@ -74,7 +74,7 @@ const DriverProfile = {
       ]);
       
     } catch (error) {
-      Utils.showAlert('שגיאה בטעינת נתוני נהג: ' + error.message, 'error');
+      Utils.showAlert(MESSAGES.ERROR_13 + error.message, 'error');
       console.error('Error loading driver:', error);
     } finally {
       Utils.hideLoading();
@@ -463,7 +463,7 @@ const DriverProfile = {
     const doc = docs[docType];
     
     if (!doc || !doc.url) {
-      Utils.showAlert('מסמך לא זמין', 'error');
+      Utils.showAlert(MESSAGES.MSG_12, 'error');
       return;
     }
     
@@ -505,11 +505,11 @@ const DriverProfile = {
       
       await API.verifyDocument(this.driverId, docType);
       
-      Utils.showAlert('המסמך אומת בהצלחה', 'success');
+      Utils.showAlert(MESSAGES.SUCCESS_7, 'success');
       await this.loadDriverData();
       
     } catch (error) {
-      Utils.showAlert('שגיאה באימות מסמך: ' + error.message, 'error');
+      Utils.showAlert(MESSAGES.ERROR_3 + error.message, 'error');
     } finally {
       Utils.hideLoading();
     }
@@ -528,10 +528,10 @@ const DriverProfile = {
       
       await API.sendDriverMessage(this.driverId, message);
       
-      Utils.showAlert('ההודעה נשלחה בהצלחה', 'success');
+      Utils.showAlert(MESSAGES.SUCCESS_5, 'success');
       
     } catch (error) {
-      Utils.showAlert('שגיאה בשליחת הודעה: ' + error.message, 'error');
+      Utils.showAlert(MESSAGES.ERROR_22 + error.message, 'error');
     } finally {
       Utils.hideLoading();
     }
@@ -539,7 +539,7 @@ const DriverProfile = {
   
   async makePayment() {
     // This would open a payment modal
-    Utils.showAlert('מערכת התשלומים בפיתוח', 'info');
+    Utils.showAlert(MESSAGES.MSG_14, 'info');
   },
   
   async toggleBlock() {
@@ -557,14 +557,14 @@ const DriverProfile = {
       await this.loadDriverData();
       
     } catch (error) {
-      Utils.showAlert('שגיאה: ' + error.message, 'error');
+      Utils.showAlert(MESSAGES.ERROR_23 + error.message, 'error');
     } finally {
       Utils.hideLoading();
     }
   },
   
   async editDriver() {
-    Utils.showAlert('עריכת נהג בפיתוח', 'info');
+    Utils.showAlert(MESSAGES.MSG_22, 'info');
   }
 };
 

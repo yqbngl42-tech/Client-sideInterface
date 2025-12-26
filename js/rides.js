@@ -231,7 +231,7 @@ async function cancelRide(rideId) {
     
     if (!response.ok) throw new Error('Failed to cancel ride');
     
-    Utils.showNotification('הנסיעה בוטלה בהצלחה', 'success');
+    Utils.showNotification(MESSAGES.SUCCESS_9, 'success');
     await loadRides(currentPage);
     
   } catch (error) {
@@ -250,11 +250,11 @@ async function redispatchRide(rideId) {
   try {
     // NOTE: This is a new endpoint that needs to be created
     // For now, we'll just show a message
-    Utils.showNotification('פיצ׳ר זה יהיה זמין בקרוב', 'info');
+    Utils.showNotification(MESSAGES.MSG_29, 'info');
     
     // When ready:
     // await api.redispatchRide(rideId);
-    // Utils.showNotification('הנסיעה נשלחה מחדש', 'success');
+    // Utils.showNotification(MESSAGES.MSG_3, 'success');
     // await loadRides(currentPage);
     
   } catch (error) {
@@ -269,7 +269,7 @@ function setupEventListeners() {
   // Logout
   document.getElementById('logoutBtn').addEventListener('click', async (e) => {
     e.preventDefault();
-    const confirmed = await Utils.showConfirm('האם להתנתק?', 'התנתקות');
+    const confirmed = await Utils.showConfirm(MESSAGES.CONFIRM_8, 'התנתקות');
     if (confirmed) {
       await api.logout();
       window.location.href = '/index.html';
@@ -380,7 +380,7 @@ function showCreateRideModal() {
       
       if (!response.ok) throw new Error('Failed to create ride');
       
-      Utils.showNotification('נסיעה נוצרה בהצלחה!', 'success');
+      Utils.showNotification(MESSAGES.SUCCESS_17, 'success');
       document.querySelector('.modal').remove();
       await loadRides(1);
       

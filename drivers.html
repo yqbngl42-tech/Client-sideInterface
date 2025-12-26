@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/dark-mode.css">
+  <link rel="stylesheet" href="css/help-button.css">
+  <link rel="stylesheet" href="css/search-component.css">
   
   <style>
     /* Add Driver Form Styles */
@@ -315,6 +317,10 @@
         </a>
         
         <li class="menu-section-title">מערכת</li>
+        <a href="system.html" class="menu-item">
+          <i class="fas fa-cogs"></i>
+          <span>ניהול מערכת</span>
+        </a>
         <a href="settings.html" class="menu-item">
           <i class="fas fa-cog"></i>
           <span>הגדרות</span>
@@ -396,19 +402,29 @@
           </div>
         </div>
 
-        <!-- FILTERS -->
-        <div class="card">
-          <div class="card-header">
-            <h2>
-              <i class="fas fa-filter"></i>
-              סינונים וחיפוש
-            </h2>
+        <!-- 🆕 SEARCH COMPONENT -->
+        <div class="search-container">
+          <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input 
+              type="text" 
+              id="globalSearch" 
+              class="search-input"
+              placeholder="חפש לפי שם, מספר נהג, טלפון, מספר רכב או אזור..."
+              autocomplete="off">
+            <button class="search-clear" id="clearSearch" style="display: none;">
+              <i class="fas fa-times"></i>
+            </button>
+            <button class="search-advanced" id="advancedSearch">
+              <i class="fas fa-sliders-h"></i> סינון מתקדם
+            </button>
           </div>
-          <div class="card-body">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-              <div class="form-group">
-                <label>סטטוס</label>
-                <select id="filterStatus" class="form-control">
+          
+          <div class="advanced-filters" id="advancedFilters" style="display: none;">
+            <div class="filter-row">
+              <div class="filter-group">
+                <label><i class="fas fa-info-circle"></i> סטטוס</label>
+                <select id="filter_status" class="filter-select">
                   <option value="">הכל</option>
                   <option value="active">פעיל</option>
                   <option value="available">זמין</option>
@@ -418,9 +434,9 @@
                 </select>
               </div>
               
-              <div class="form-group">
-                <label>אזור עבודה</label>
-                <select id="filterRegion" class="form-control">
+              <div class="filter-group">
+                <label><i class="fas fa-map-marker-alt"></i> אזור עבודה</label>
+                <select id="filter_region" class="filter-select">
                   <option value="">הכל</option>
                   <option value="north">צפון</option>
                   <option value="center">מרכז</option>
@@ -429,23 +445,37 @@
                 </select>
               </div>
               
-              <div class="form-group">
-                <label>דירוג</label>
-                <select id="filterRating" class="form-control">
+              <div class="filter-group">
+                <label><i class="fas fa-star"></i> דירוג מינימלי</label>
+                <select id="filter_rating" class="filter-select">
                   <option value="">הכל</option>
                   <option value="5">⭐⭐⭐⭐⭐</option>
-                  <option value="4">⭐⭐⭐⭐</option>
-                  <option value="3">⭐⭐⭐</option>
-                  <option value="2">⭐⭐</option>
-                  <option value="1">⭐</option>
+                  <option value="4">⭐⭐⭐⭐ ומעלה</option>
+                  <option value="3">⭐⭐⭐ ומעלה</option>
+                  <option value="2">⭐⭐ ומעלה</option>
+                  <option value="1">⭐ ומעלה</option>
                 </select>
               </div>
               
-              <div class="form-group">
-                <label>חיפוש</label>
-                <input type="text" id="searchQuery" class="form-control" placeholder="שם, טלפון, ת.ז...">
+              <div class="filter-group">
+                <label><i class="fas fa-car"></i> מספר נסיעות מינימלי</label>
+                <input type="number" id="filter_minRides" class="filter-input" placeholder="0" min="0">
               </div>
             </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+              <button class="btn btn-sm btn-secondary" onclick="SearchComponent.resetFilters()">
+                <i class="fas fa-undo"></i> אפס סינונים
+              </button>
+              <button class="btn btn-sm btn-primary" onclick="SearchComponent.applyAdvancedFilters()">
+                <i class="fas fa-check"></i> החל סינון
+              </button>
+            </div>
+          </div>
+          
+          <div class="search-results-info" id="searchInfo" style="display: none;">
+            <span id="resultsCount">נמצאו 0 תוצאות</span>
+            <button class="btn-link" id="resetFilters">אפס חיפוש</button>
           </div>
         </div>
 
@@ -518,6 +548,7 @@
 
   <!-- SCRIPTS -->
   <script src="js/config.js"></script>
+  <script src="js/messages.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/api.js"></script>
   <script src="js/theme.js"></script>
@@ -534,6 +565,7 @@
       pageSize: 25,
       totalPages: 0,
       drivers: [],
+      filteredDrivers: [],
       filters: {},
       _loading: false, // Prevent concurrent API calls
       
@@ -541,12 +573,13 @@
         this.attachEventListeners();
         // Load drivers and stats in ONE request to avoid rate limiting
         await this.loadDriversAndStats();
+        this.initializeSearch();
       },
       
       async loadDriversAndStats() {
         // Prevent multiple simultaneous calls
         if (this._loading) {
-          console.log('Already loading, skipping...');
+          // console.log('Already loading, skipping...');
           return;
         }
         
@@ -569,7 +602,7 @@
             this.drivers = [];
           }
           
-          console.log('Loaded drivers:', this.drivers.length);
+          // console.log('Loaded drivers:', this.drivers.length);
           
           // Update drivers table
           this.renderTable();
@@ -592,9 +625,9 @@
           
           // Show user-friendly error message
           if (error.message.includes('429') || error.message.includes('Too Many Requests')) {
-            Utils.showAlert('יותר מדי בקשות. נסה שוב בעוד רגע...', 'warning');
+            Utils.showAlert(MESSAGES.MSG_8, 'warning');
           } else {
-            Utils.showAlert('שגיאה בטעינת נתונים: ' + error.message, 'error');
+            Utils.showAlert(MESSAGES.ERROR_14 + error.message, 'error');
           }
           
           this.drivers = [];
@@ -607,6 +640,43 @@
           Utils.hideLoading();
           this._loading = false; // Reset flag
         }
+      },
+      
+
+      initializeSearch() {
+        SearchComponent.init({
+          searchFields: ['name', 'driverId', 'phone', 'vehicleNumber', 'workArea'],
+          onSearch: (term, filters) => this.searchDrivers(term, filters),
+          highlightResults: false
+        });
+      },
+      
+      searchDrivers(searchTerm, filters) {
+        const statusFilter = document.getElementById('filter_status')?.value || '';
+        const regionFilter = document.getElementById('filter_region')?.value || '';
+        const ratingFilter = document.getElementById('filter_rating')?.value || '';
+        const minRidesFilter = document.getElementById('filter_minRides')?.value || '';
+        
+        this.filteredDrivers = this.drivers.filter(driver => {
+          const matchesSearch = SearchComponent.searchInFields(
+            driver,
+            searchTerm,
+            ['name', 'driverId', 'phone', 'vehicleNumber', 'workArea']
+          );
+          
+          const matchesStatus = !statusFilter || driver.status === statusFilter;
+          const matchesRegion = !regionFilter || driver.workArea?.toLowerCase().includes(regionFilter);
+          const matchesRating = !ratingFilter || (driver.rating?.average || 0) >= parseFloat(ratingFilter);
+          const matchesMinRides = !minRidesFilter || (driver.statistics?.completedRides || 0) >= parseInt(minRidesFilter);
+          
+          return matchesSearch && matchesStatus && matchesRegion && matchesRating && matchesMinRides;
+        });
+        
+        this.currentPage = 1;
+        this.renderTable();
+        this.renderPagination();
+        
+        return this.filteredDrivers;
       },
       
       attachEventListeners() {
@@ -628,20 +698,6 @@
           });
         }
         
-        // Filters - with debounce
-        const filterStatus = document.getElementById('filterStatus');
-        if (filterStatus) {
-          let filterTimeout;
-          filterStatus.addEventListener('change', () => {
-            clearTimeout(filterTimeout);
-            filterTimeout = setTimeout(() => {
-              this.applyFilters();
-            }, 300);
-          });
-        }
-        document.getElementById('filterRegion')?.addEventListener('change', () => this.applyFilters());
-        document.getElementById('filterRating')?.addEventListener('change', () => this.applyFilters());
-        document.getElementById('searchQuery')?.addEventListener('input', Utils.debounce(() => this.applyFilters(), 300));
         
         // Page size
         document.getElementById('pageSize')?.addEventListener('change', (e) => {
@@ -688,7 +744,7 @@
             this.drivers = [];
           }
           
-          console.log('Loaded drivers:', this.drivers.length);
+          // console.log('Loaded drivers:', this.drivers.length);
           
           this.renderTable();
           this.renderPagination();
@@ -698,9 +754,9 @@
           console.error('Error loading drivers:', error);
           
           if (error.message.includes('429') || error.message.includes('Too Many Requests')) {
-            Utils.showAlert('יותר מדי בקשות. נסה שוב בעוד רגע...', 'warning');
+            Utils.showAlert(MESSAGES.MSG_8, 'warning');
           } else {
-            Utils.showAlert('שגיאה בטעינת נהגים: ' + error.message, 'error');
+            Utils.showAlert(MESSAGES.ERROR_11 + error.message, 'error');
           }
           
           this.drivers = [];
@@ -711,9 +767,13 @@
       
       renderTable() {
         const tbody = document.getElementById('driversTableBody');
+        
+        const hasActiveSearch = SearchComponent.searchTerm || Object.keys(SearchComponent.filters).length > 0;
+        const driversToShow = hasActiveSearch ? this.filteredDrivers : this.drivers;
+        
         const start = (this.currentPage - 1) * this.pageSize;
         const end = start + this.pageSize;
-        const pageDrivers = this.drivers.slice(start, end);
+        const pageDrivers = driversToShow.slice(start, end);
         
         if (pageDrivers.length === 0) {
           tbody.innerHTML = `
@@ -755,9 +815,19 @@
                 <button class="btn-icon btn-sm" onclick="DriversPage.editDriver('${driver._id}')" title="עריכה">
                   <i class="fas fa-edit"></i>
                 </button>
-                <button class="btn-icon btn-sm btn-danger" onclick="DriversPage.toggleBlock('${driver._id}', '${driver.status}')" title="${driver.status === 'blocked' ? 'בטל חסימה' : 'חסום'}">
-                  <i class="fas fa-${driver.status === 'blocked' ? 'unlock' : 'lock'}"></i>
-                </button>
+                ${driver.isBlocked ? `
+                  <button class="btn-icon btn-sm" style="background: #10b981; color: white;" 
+                          onclick="DriversPage.unblockDriver('${driver._id}')" 
+                          title="שחרר חסימה">
+                    <i class="fas fa-unlock"></i>
+                  </button>
+                ` : `
+                  <button class="btn-icon btn-sm" style="background: #ef4444; color: white;" 
+                          onclick="DriversPage.blockDriver('${driver._id}')" 
+                          title="חסום נהג">
+                    <i class="fas fa-ban"></i>
+                  </button>
+                `}
               </div>
             </td>
           </tr>
@@ -774,7 +844,10 @@
       },
       
       renderPagination() {
-        this.totalPages = Math.ceil(this.drivers.length / this.pageSize);
+        const hasActiveSearch = SearchComponent.searchTerm || Object.keys(SearchComponent.filters).length > 0;
+        const driversToShow = hasActiveSearch ? this.filteredDrivers : this.drivers;
+        
+        this.totalPages = Math.ceil(driversToShow.length / this.pageSize);
         const container = document.getElementById('paginationContainer');
         const pagination = document.getElementById('pagination');
         
@@ -822,16 +895,6 @@
         this.renderPagination();
       },
       
-      applyFilters() {
-        this.filters = {
-          status: document.getElementById('filterStatus').value,
-          region: document.getElementById('filterRegion').value,
-          rating: document.getElementById('filterRating').value,
-          search: document.getElementById('searchQuery').value
-        };
-        this.currentPage = 1;
-        this.loadDrivers();
-      },
       
       openAddModal() {
         const html = `
@@ -1139,7 +1202,7 @@
           
           // Validate phone format
           if (input.id === 'driverPhone' && !input.value.match(/^05[0-9]-[0-9]{3}-[0-9]{4}$/)) {
-            Utils.showAlert('פורמט טלפון שגוי. השתמש ב: 050-123-4567', 'warning');
+            Utils.showAlert(MESSAGES.LABEL_1, 'warning');
             input.focus();
             return false;
           }
@@ -1147,12 +1210,12 @@
           // Validate ID number
           if (input.id === 'driverIdNumber') {
             if (!input.value.match(/^[0-9]{9}$/)) {
-              Utils.showAlert('תעודת זהות חייבת להכיל 9 ספרות', 'warning');
+              Utils.showAlert(MESSAGES.VALIDATION_2, 'warning');
               input.focus();
               return false;
             }
             if (!Utils.validateIsraeliId(input.value)) {
-              Utils.showAlert('תעודת זהות לא תקינה', 'warning');
+              Utils.showAlert(MESSAGES.MSG_31, 'warning');
               input.focus();
               return false;
             }
@@ -1160,7 +1223,7 @@
           
           // Validate car number format
           if (input.id === 'carNumber' && !input.value.match(/^[0-9]{2}-[0-9]{3}-[0-9]{2}$/)) {
-            Utils.showAlert('פורמט מספר רכב שגוי. השתמש ב: 12-345-67', 'warning');
+            Utils.showAlert(MESSAGES.LABEL_2, 'warning');
             input.focus();
             return false;
           }
@@ -1192,9 +1255,9 @@
             vehicleYear: formData.get('carYear') ? parseInt(formData.get('carYear')) : null
           };
           
-          console.log('📤 Creating driver:', driverData);
+          // console.log('📤 Creating driver:', driverData);
           const newDriver = await api.createDriver(driverData);
-          console.log('✅ Driver created:', newDriver);
+          // console.log('✅ Driver created:', newDriver);
           
           // Upload documents if provided
           const uploads = [];
@@ -1243,7 +1306,7 @@
         } catch (error) {
           Utils.hideLoading();
           console.error('Error adding driver:', error);
-          Utils.showAlert('שגיאה בהוספת נהג: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_7 + error.message, 'error');
         }
       },
       
@@ -1317,9 +1380,12 @@
                         <div style="padding: 15px; background: var(--bg-secondary); border-radius: 5px;">
                           <h4 style="margin: 0 0 10px 0;">${doc.type}</h4>
                           <div style="display: flex; align-items: center; gap: 10px;">
-                            ${doc.verified ? 
+                           ${doc.verified ? 
                               '<span class="badge badge-success"><i class="fas fa-check"></i> מאומת</span>' : 
-                              '<span class="badge badge-warning"><i class="fas fa-clock"></i> ממתין</span>'}
+                              `<button class="btn btn-sm btn-primary" 
+                                       onclick="event.stopPropagation(); DriversPage.verifyDocument('${driver._id}', '${doc.type}')">
+                                 <i class="fas fa-check-circle"></i> אמת מסמך
+                               </button>`}
                             <a href="${doc.url}" target="_blank" class="btn-icon btn-sm">
                               <i class="fas fa-download"></i>
                             </a>
@@ -1369,7 +1435,7 @@
             });
           });
         } catch (error) {
-          Utils.showAlert('שגיאה: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_23 + error.message, 'error');
         }
       },
       
@@ -1379,11 +1445,11 @@
         
         try {
           await api.addDriverNote(driverId, text);
-          Utils.showAlert('הערה נוספה', 'success');
+          Utils.showAlert(MESSAGES.MSG_5, 'success');
           document.querySelector('.modal-overlay').remove();
           await this.viewDriver(driverId);
         } catch (error) {
-          Utils.showAlert('שגיאה: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_23 + error.message, 'error');
         }
       },
       
@@ -1401,11 +1467,11 @@
             formData.append('type', prompt('סוג מסמך (רישיון/ביטוח/תעודת זהות):') || 'other');
             
             await api.uploadDriverDocument(driverId, formData);
-            Utils.showAlert('מסמך הועלה בהצלחה', 'success');
+            Utils.showAlert(MESSAGES.SUCCESS_16, 'success');
             document.querySelector('.modal-overlay').remove();
             await this.viewDriver(driverId);
           } catch (error) {
-            Utils.showAlert('שגיאה בהעלאה: ' + error.message, 'error');
+            Utils.showAlert(MESSAGES.ERROR_8 + error.message, 'error');
           }
         };
         input.click();
@@ -1415,19 +1481,35 @@
          Utils.showAlert(`פיצ'ר הוספת נהג יבוא בקרוב!`, "info");
       },
       
-      async toggleBlock(id, currentStatus) {
-        const newStatus = currentStatus === 'blocked' ? 'active' : 'blocked';
-        const action = newStatus === 'blocked' ? 'לחסום' : 'לבטל חסימה';
+      async blockDriver(id) {
+        const reason = prompt('סיבת חסימה:');
+        if (!reason || !reason.trim()) {
+          Utils.showAlert(MESSAGES.VALIDATION_1, 'error');
+          return;
+        }
         
-        if (!confirm(`האם אתה בטוח שברצונך ${action} נהג זה?`)) return;
+        if (!confirm(`האם לחסום את הנהג? סיבה: ${reason}`)) return;
         
         try {
-          await api.updateDriver(id, { status: newStatus });
-          Utils.showAlert(`הנהג ${newStatus === 'blocked' ? 'נחסם' : 'שוחרר'} בהצלחה`, 'success');
-          await this.loadDrivers();
-          await this.loadStats();
+          await api.blockDriver(id, reason);
+          Utils.showAlert(MESSAGES.SUCCESS_8, 'success');
+          await this.loadDriversAndStats();
         } catch (error) {
-          Utils.showAlert('שגיאה: ' + error.message, 'error');
+          console.error('Error blocking driver:', error);
+          Utils.showAlert(MESSAGES.ERROR_9 + error.message, 'error');
+        }
+      },
+      
+      async unblockDriver(id) {
+        if (!confirm(MESSAGES.CONFIRM_7)) return;
+        
+        try {
+          await api.unblockDriver(id);
+          Utils.showAlert(MESSAGES.SUCCESS_6, 'success');
+          await this.loadDriversAndStats();
+        } catch (error) {
+          console.error('Error unblocking driver:', error);
+          Utils.showAlert(MESSAGES.ERROR_5 + error.message, 'error');
         }
       },
       
@@ -1445,7 +1527,22 @@
           
           Utils.exportToExcel(data, 'נהגים_' + new Date().toISOString().split('T')[0]);
         } catch (error) {
-          Utils.showAlert('שגיאה בייצוא: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_17 + error.message, 'error');
+        }
+      },
+      
+      async verifyDocument(driverId, documentType) {
+        if (!confirm(`האם לאמת מסמך ${documentType}?`)) return;
+        
+        try {
+          await api.verifyDocument(driverId, documentType);
+          Utils.showAlert(MESSAGES.SUCCESS_7, 'success');
+          
+          document.querySelector('.modal-overlay')?.remove();
+          await this.viewDriver(driverId);
+        } catch (error) {
+          console.error('Error verifying document:', error);
+          Utils.showAlert(MESSAGES.ERROR_3 + error.message, 'error');
         }
       }
     };
@@ -1778,5 +1875,11 @@
     }
   });
 </script>
+
+<!-- Help System -->
+  <script src="js/help-button.js"></script>
+  
+  <!-- Search System -->
+  <script src="js/search-component.js"></script>
 </body>
 </html>

@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/dark-mode.css">
+  <link rel="stylesheet" href="css/help-button.css">
+  <link rel="stylesheet" href="css/search-component.css">
 </head>
 <body>
   <div class="dashboard-container">
@@ -25,7 +27,14 @@
         <a href="messages.html" class="menu-item"><i class="fas fa-envelope"></i><span>הודעות</span></a>
         <a href="reports.html" class="menu-item"><i class="fas fa-chart-bar"></i><span>דוחות</span></a>
         <li class="menu-section-title">מערכת</li>
-        <a href="settings.html" class="menu-item"><i class="fas fa-cog"></i><span>הגדרות</span></a>
+        <a href="system.html" class="menu-item">
+          <i class="fas fa-cogs"></i>
+          <span>ניהול מערכת</span>
+        </a>
+        <a href="settings.html" class="menu-item">
+          <i class="fas fa-cog"></i>
+          <span>הגדרות</span>
+        </a>
         <a href="#" class="menu-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>התנתק</span></a>
       </ul>
     </aside>
@@ -47,6 +56,65 @@
           </button>
         </div>
       </header>
+      <!-- 🆕 SEARCH COMPONENT -->
+      <div class="search-container">
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input 
+            type="text" 
+            id="globalSearch" 
+            class="search-input"
+            placeholder="חפש בכל המערכת - נהגים, נסיעות, תשלומים..."
+            autocomplete="off">
+          <button class="search-clear" id="clearSearch" style="display: none;">
+            <i class="fas fa-times"></i>
+          </button>
+          <button class="search-advanced" id="advancedSearch">
+            <i class="fas fa-sliders-h"></i> סינון מתקדם
+          </button>
+        </div>
+        
+        <div class="advanced-filters" id="advancedFilters" style="display: none;">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label><i class="fas fa-filter"></i> סוג</label>
+              <select id="filter_type" class="filter-select">
+                <option value="">הכל</option>
+                <option value="driver">נהג</option>
+                <option value="ride">נסיעה</option>
+                <option value="payment">תשלום</option>
+                <option value="message">הודעה</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label><i class="fas fa-filter"></i> תאריך מ-</label>
+              <input type="date" id="filter_dateFrom" class="filter-input">
+            </div>
+
+            <div class="filter-group">
+              <label><i class="fas fa-filter"></i> תאריך עד</label>
+              <input type="date" id="filter_dateTo" class="filter-input">
+            </div>
+          </div>
+          
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+            <button class="btn btn-sm btn-secondary" onclick="SearchComponent.resetFilters()">
+              <i class="fas fa-undo"></i> אפס סינונים
+            </button>
+            <button class="btn btn-sm btn-primary" onclick="SearchComponent.applyAdvancedFilters()">
+              <i class="fas fa-check"></i> החל סינון
+            </button>
+          </div>
+        </div>
+        
+        <div class="search-results-info" id="searchInfo" style="display: none;">
+          <span id="resultsCount">נמצאו 0 תוצאות</span>
+          <button class="btn-link" id="resetFilters">אפס חיפוש</button>
+        </div>
+      </div>
+
+
 
       <div class="content-area">
         <!-- BIG CREATE RIDE BUTTON -->
@@ -197,6 +265,7 @@
   </div>
 
   <script src="js/config.js"></script>
+  <script src="js/messages.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/api.js"></script>
   <script src="js/theme.js"></script>
@@ -209,12 +278,55 @@
       refreshInterval: null,
       
       async init() {
+    try {
+
         this.attachEventListeners();
         await this.loadData();
+    this.initializeSearch();
         this.startAutoRefresh();
-      },
+          } catch (error) {
+      console.error('Error in init:', error);
+      Utils.showError('שגיאה. אנא נסה שוב.');
+    }
+  },
       
-      attachEventListeners() {
+    
+  initializeSearch() {
+    SearchComponent.init({
+      searchFields: ['type', 'title', 'description', 'user'],
+      onSearch: (term, filters) => this.searchActivities(term, filters),
+      highlightResults: false
+    });
+  },
+  
+  searchActivities(searchTerm, filters) {
+    const typeFilter = document.getElementById('filter_type')?.value || '';
+    const dateFromFilter = document.getElementById('filter_dateFrom')?.value || '';
+    const dateToFilter = document.getElementById('filter_dateTo')?.value || '';
+    
+    this.filteredActivities = this.activities.filter(item => {
+      const matchesSearch = SearchComponent.searchInFields(
+        item,
+        searchTerm,
+        ['type', 'title', 'description', 'user']
+      );
+      
+      const matchesType = !typeFilter || item.type === typeFilter;
+      const itemDate = new Date(item.createdAt || item.date || item.sentAt);
+      const matchesDateFrom = !dateFromFilter || itemDate >= new Date(dateFromFilter);
+      const matchesDateTo = !dateToFilter || itemDate <= new Date(dateToFilter + 'T23:59:59');
+      
+      return matchesSearch && matchesType && matchesDateFrom && matchesDateTo;
+    });
+    
+    this.currentPage = 1;
+    this.renderTable();
+    this.renderPagination();
+    
+    return this.filteredActivities;
+  },
+  
+  attachEventListeners() {
         document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadData());
         document.getElementById('auditLogsBtn')?.addEventListener('click', () => this.showAuditLogs());
         document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
@@ -433,7 +545,7 @@
           `;
           document.body.insertAdjacentHTML('beforeend', html);
         } catch (error) {
-          Utils.showAlert('שגיאה בטעינת לוגים: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_10 + error.message, 'error');
         }
       }
     };
@@ -607,5 +719,9 @@
       to { transform: translateY(0); opacity: 1; }
     }
   </style>
+
+<!-- Help System -->                              ← 🆕 הוספתי!
+  <script src="js/help-button.js"></script>        ← 🆕 הוספתי!
+  <script src="js/search-component.js"></script>
 </body>
 </html>

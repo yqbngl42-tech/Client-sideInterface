@@ -5,6 +5,11 @@
 class ApiClient {
   constructor() {
     this.baseURL = CONFIG.API_URL;
+    this.updateToken();
+  }
+  
+  // Helper to always get fresh token
+  updateToken() {
     this.token = localStorage.getItem(CONFIG.STORAGE_KEYS.TOKEN);
   }
   
@@ -13,7 +18,15 @@ class ApiClient {
   // ===============================================
   async request(method, endpoint, data = null, options = {}) {
     try {
+      // Always get fresh token before request
+      this.updateToken();
+      
       const url = `${this.baseURL}${endpoint}`;
+      
+      // 📝 LOG: Request details
+      // console.log(`📤 API ${method}:`, url);
+      if (data) // console.log('📋 Request data:', data);
+      // console.log('🔑 Token:', this.token ? 'Found ✅' : 'NOT FOUND ❌');
       
       const fetchOptions = {
         method,
@@ -29,22 +42,36 @@ class ApiClient {
       }
       
       const response = await fetch(url, fetchOptions);
+      
+      // 📝 LOG: Response status
+      // console.log(`📡 Response status: ${response.status} ${response.statusText}`);
+      
       const result = await response.json();
+      
+      // 📝 LOG: Response data
+      // console.log('📦 Response data:', result);
       
       // Handle token expiration
       if (response.status === 401 || response.status === 403) {
+        console.error('❌ Unauthorized - redirecting to login');
         this.handleUnauthorized();
         throw new Error('Unauthorized');
       }
       
       // Handle errors
       if (!result.ok) {
-        throw new Error(result.error?.message || 'Unknown error');
+        const errorMsg = result.error?.message || result.error || 'Unknown error';
+        console.error('❌ API Error:', errorMsg);
+        throw new Error(errorMsg);
       }
       
-      return result.data;
+      // console.log('✅ Request successful');
+      
+      // Return the appropriate data based on what the server sent
+      // Some endpoints return { ok, data }, others return { ok, driver }, { ok, ride }, etc.
+      return result.data || result.driver || result.ride || result.payment || result;
     } catch (error) {
-      console.error('API Error:', error);
+      console.error('❌ API Error:', error);
       throw error;
     }
   }

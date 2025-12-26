@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/dark-mode.css">
+  <link rel="stylesheet" href="css/help-button.css">
+  <link rel="stylesheet" href="css/search-component.css">
 </head>
 <body>
   <div class="dashboard-container">
@@ -30,7 +32,14 @@
         <a href="messages.html" class="menu-item active"><i class="fas fa-envelope"></i><span>הודעות</span></a>
         
         <li class="menu-section-title">מערכת</li>
-        <a href="settings.html" class="menu-item"><i class="fas fa-cog"></i><span>הגדרות</span></a>
+        <a href="system.html" class="menu-item">
+          <i class="fas fa-cogs"></i>
+          <span>ניהול מערכת</span>
+        </a>
+        <a href="settings.html" class="menu-item">
+          <i class="fas fa-cog"></i>
+          <span>הגדרות</span>
+        </a>
         <a href="#" class="menu-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>התנתק</span></a>
       </ul>
     </aside>
@@ -53,6 +62,76 @@
           </button>
         </div>
       </header>
+      <!-- 🆕 SEARCH COMPONENT -->
+      <div class="search-container">
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input 
+            type="text" 
+            id="globalSearch" 
+            class="search-input"
+            placeholder="חפש לפי נמען, נושא או תוכן ההודעה..."
+            autocomplete="off">
+          <button class="search-clear" id="clearSearch" style="display: none;">
+            <i class="fas fa-times"></i>
+          </button>
+          <button class="search-advanced" id="advancedSearch">
+            <i class="fas fa-sliders-h"></i> סינון מתקדם
+          </button>
+        </div>
+        
+        <div class="advanced-filters" id="advancedFilters" style="display: none;">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label><i class="fas fa-filter"></i> סוג הודעה</label>
+              <select id="filter_type" class="filter-select">
+                <option value="">הכל</option>
+                <option value="single">יחיד</option>
+                <option value="broadcast">שידור</option>
+                <option value="scheduled">מתוזמן</option>
+                <option value="system">מערכת</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label><i class="fas fa-filter"></i> סטטוס</label>
+              <select id="filter_status" class="filter-select">
+                <option value="">הכל</option>
+                <option value="sent">נשלח</option>
+                <option value="pending">ממתין</option>
+                <option value="failed">נכשל</option>
+                <option value="scheduled">מתוזמן</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label><i class="fas fa-filter"></i> תאריך מ-</label>
+              <input type="date" id="filter_dateFrom" class="filter-input">
+            </div>
+
+            <div class="filter-group">
+              <label><i class="fas fa-filter"></i> תאריך עד</label>
+              <input type="date" id="filter_dateTo" class="filter-input">
+            </div>
+          </div>
+          
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+            <button class="btn btn-sm btn-secondary" onclick="SearchComponent.resetFilters()">
+              <i class="fas fa-undo"></i> אפס סינונים
+            </button>
+            <button class="btn btn-sm btn-primary" onclick="SearchComponent.applyAdvancedFilters()">
+              <i class="fas fa-check"></i> החל סינון
+            </button>
+          </div>
+        </div>
+        
+        <div class="search-results-info" id="searchInfo" style="display: none;">
+          <span id="resultsCount">נמצאו 0 תוצאות</span>
+          <button class="btn-link" id="resetFilters">אפס חיפוש</button>
+        </div>
+      </div>
+
+
 
       <div class="content-area">
         <!-- STATS -->
@@ -276,6 +355,7 @@
   </div>
 
   <script src="js/config.js"></script>
+  <script src="js/messages.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/api.js"></script>
   <script src="js/theme.js"></script>
@@ -288,9 +368,48 @@
         await this.loadStats();
         await this.loadDrivers();
         await this.loadTemplates();
+    this.initializeSearch();
       },
       
-      attachEventListeners() {
+    
+  initializeSearch() {
+    SearchComponent.init({
+      searchFields: ['recipient', 'subject', 'content', 'message'],
+      onSearch: (term, filters) => this.searchMessages(term, filters),
+      highlightResults: false
+    });
+  },
+  
+  searchMessages(searchTerm, filters) {
+    const typeFilter = document.getElementById('filter_type')?.value || '';
+    const statusFilter = document.getElementById('filter_status')?.value || '';
+    const dateFromFilter = document.getElementById('filter_dateFrom')?.value || '';
+    const dateToFilter = document.getElementById('filter_dateTo')?.value || '';
+    
+    this.filteredMessages = this.messages.filter(item => {
+      const matchesSearch = SearchComponent.searchInFields(
+        item,
+        searchTerm,
+        ['recipient', 'subject', 'content', 'message']
+      );
+      
+      const matchesType = !typeFilter || item.type === typeFilter;
+      const matchesStatus = !statusFilter || item.status === statusFilter;
+      const itemDate = new Date(item.createdAt || item.date || item.sentAt);
+      const matchesDateFrom = !dateFromFilter || itemDate >= new Date(dateFromFilter);
+      const matchesDateTo = !dateToFilter || itemDate <= new Date(dateToFilter + 'T23:59:59');
+      
+      return matchesSearch && matchesType && matchesStatus && matchesDateFrom && matchesDateTo;
+    });
+    
+    this.currentPage = 1;
+    this.renderTable();
+    this.renderPagination();
+    
+    return this.filteredMessages;
+  },
+  
+  attachEventListeners() {
         // Tabs
         document.querySelectorAll('.tab-btn').forEach(btn => {
           btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
@@ -472,7 +591,7 @@
         const text = document.getElementById('messageText').value;
         
         if (!text.trim()) {
-          Utils.showAlert('נא להזין טקסט הודעה', 'error');
+          Utils.showAlert(MESSAGES.MSG_18, 'error');
           return;
         }
         
@@ -480,7 +599,7 @@
           if (type === 'single') {
             const recipient = document.getElementById('recipient').value;
             if (!recipient) {
-              Utils.showAlert('נא לבחור נמען', 'error');
+              Utils.showAlert(MESSAGES.MSG_17, 'error');
               return;
             }
             await API.sendSingleMessage(recipient, text);
@@ -490,17 +609,17 @@
           } else if (type === 'scheduled') {
             const scheduleTime = document.getElementById('scheduleTime').value;
             if (!scheduleTime) {
-              Utils.showAlert('נא לבחור זמן שליחה', 'error');
+              Utils.showAlert(MESSAGES.MSG_16, 'error');
               return;
             }
             await API.scheduleMessage(text, scheduleTime);
           }
           
-          Utils.showAlert('ההודעה נשלחה בהצלחה', 'success');
+          Utils.showAlert(MESSAGES.SUCCESS_5, 'success');
           document.getElementById('sendMessageForm').reset();
           await this.loadStats();
         } catch (error) {
-          Utils.showAlert('שגיאה בשליחה: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_21 + error.message, 'error');
         }
       },
       
@@ -513,36 +632,36 @@
       },
       
       addTemplate() {
-        Utils.showAlert('פיצ'ר הוספת תבנית יבוא בקרוב!', 'info');
+         Utils.showAlert(`פיצ'ר הוספת נהג יבוא בקרוב!`, "info");;
       },
       
       editTemplate(id) {
-        Utils.showAlert('פיצ'ר עריכת תבנית יבוא בקרוב!', 'info');
+         Utils.showAlert(`פיצ'ר הוספת נהג יבוא בקרוב!`, "info");
       },
       
       async deleteTemplate(id) {
-        if (!confirm('האם למחוק תבנית זו?')) return;
+        if (!confirm(MESSAGES.CONFIRM_9)) return;
         try {
           await API.deleteMessageTemplate(id);
-          Utils.showAlert('התבנית נמחקה', 'success');
+          Utils.showAlert(MESSAGES.SUCCESS_13, 'success');
           await this.loadTemplates();
         } catch (error) {
-          Utils.showAlert('שגיאה: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_23 + error.message, 'error');
         }
       },
       
       addCampaign() {
-        Utils.showAlert('פיצ'ר יצירת קמפיין יבוא בקרוב!', 'info');
+        Utils.showAlert(MESSAGES.MSG_25), "info");
       },
       
       viewCampaign(id) {
-        Utils.showAlert('פיצ'ר צפייה בקמפיין יבוא בקרוב!', 'info');
+        Utils.showAlert(MESSAGES.MSG_27), "info");
       },
       
       previewMessage() {
         const text = document.getElementById('messageText').value;
         if (!text.trim()) {
-          Utils.showAlert('אין טקסט לתצוגה מקדימה', 'error');
+          Utils.showAlert(MESSAGES.MSG_1, 'error');
           return;
         }
         
@@ -619,5 +738,9 @@
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
+
+  <!-- Help System -->
+  <script src="js/help-button.js"></script>
+  <script src="js/search-component.js"></script>
 </body>
 </html>

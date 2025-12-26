@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/dark-mode.css">
+   <link rel="stylesheet" href="css/help-button.css">
 </head>
 <body>
   <div class="dashboard-container">
@@ -47,6 +48,10 @@
         </a>
         
         <li class="menu-section-title">מערכת</li>
+        <a href="system.html" class="menu-item">
+          <i class="fas fa-cogs"></i>
+          <span>ניהול מערכת</span>
+        </a>
         <a href="settings.html" class="menu-item">
           <i class="fas fa-cog"></i>
           <span>הגדרות</span>
@@ -250,6 +255,7 @@
 
   <!-- SCRIPTS -->
   <script src="js/config.js"></script>
+  <script src="js/messages.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/api.js"></script>
   <script src="js/theme.js"></script>
@@ -335,7 +341,7 @@
           
           document.getElementById('driversCount').textContent = this.drivers.length;
         } catch (error) {
-          Utils.showAlert('שגיאה בטעינת נהגים: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_11 + error.message, 'error');
         } finally {
           Utils.hideLoading();
         }
@@ -466,15 +472,15 @@
       },
       
       openAddModal() {
-        Utils.showAlert('פיצ'ר הוספת נהג יבוא בקרוב!', 'info');
+         Utils.showAlert(`פיצ'ר הוספת נהג יבוא בקרוב!`, "info");
       },
       
       viewDriver(id) {
-        Utils.showAlert('פיצ'ר צפייה בנהג יבוא בקרוב!', 'info');
+        Utils.showAlert(`פיצ'ר הוספת נהג יבוא בקרוב!`, "info");
       },
       
       editDriver(id) {
-        Utils.showAlert('פיצ'ר עריכת נהג יבוא בקרוב!', 'info');
+         Utils.showAlert(`פיצ'ר הוספת נהג יבוא בקרוב!`, "info");
       },
       
       async toggleBlock(id, currentStatus) {
@@ -489,7 +495,7 @@
           await this.loadDrivers();
           await this.loadStats();
         } catch (error) {
-          Utils.showAlert('שגיאה: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_23 + error.message, 'error');
         }
       },
       
@@ -507,7 +513,7 @@
           
           Utils.exportToExcel(data, 'נהגים_' + new Date().toISOString().split('T')[0]);
         } catch (error) {
-          Utils.showAlert('שגיאה בייצוא: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_17 + error.message, 'error');
         }
       }
     };
@@ -515,5 +521,8 @@
     // Init
     document.addEventListener('DOMContentLoaded', () => DriversPage.init());
   </script>
+
+   <!-- Help System -->
+  <script src="js/help-button.js"></script>
 </body>
 </html>

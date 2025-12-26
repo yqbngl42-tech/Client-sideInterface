@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/dark-mode.css">
+  <link rel="stylesheet" href="css/help-button.css">
+  <link rel="stylesheet" href="css/search-component.css">
 </head>
 <body>
   <div class="dashboard-container">
@@ -55,6 +57,10 @@
         </a>
         
         <li class="menu-section-title">מערכת</li>
+        <a href="system.html" class="menu-item">
+          <i class="fas fa-cogs"></i>
+          <span>ניהול מערכת</span>
+        </a>
         <a href="settings.html" class="menu-item">
           <i class="fas fa-cog"></i>
           <span>הגדרות</span>
@@ -85,6 +91,70 @@
           </button>
         </div>
       </header>
+      <!-- 🆕 SEARCH COMPONENT -->
+      <div class="search-container">
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input 
+            type="text" 
+            id="globalSearch" 
+            class="search-input"
+            placeholder="חפש לפי שם, טלפון, מספר רכב או אזור..."
+            autocomplete="off">
+          <button class="search-clear" id="clearSearch" style="display: none;">
+            <i class="fas fa-times"></i>
+          </button>
+          <button class="search-advanced" id="advancedSearch">
+            <i class="fas fa-sliders-h"></i> סינון מתקדם
+          </button>
+        </div>
+        
+        <div class="advanced-filters" id="advancedFilters" style="display: none;">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label><i class="fas fa-filter"></i> סטטוס</label>
+              <select id="filter_status" class="filter-select">
+                <option value="">הכל</option>
+                <option value="pending">ממתין</option>
+                <option value="approved">אושר</option>
+                <option value="rejected">נדחה</option>
+                <option value="processing">בטיפול</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label><i class="fas fa-filter"></i> אזור</label>
+              <input type="text" id="filter_area" class="filter-input" placeholder="חפש אזור...">
+            </div>
+
+            <div class="filter-group">
+              <label><i class="fas fa-filter"></i> תאריך מ-</label>
+              <input type="date" id="filter_dateFrom" class="filter-input">
+            </div>
+
+            <div class="filter-group">
+              <label><i class="fas fa-filter"></i> תאריך עד</label>
+              <input type="date" id="filter_dateTo" class="filter-input">
+            </div>
+          </div>
+          
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+            <button class="btn btn-sm btn-secondary" onclick="SearchComponent.resetFilters()">
+              <i class="fas fa-undo"></i> אפס סינונים
+            </button>
+            <button class="btn btn-sm btn-primary" onclick="SearchComponent.applyAdvancedFilters()">
+              <i class="fas fa-check"></i> החל סינון
+            </button>
+          </div>
+        </div>
+        
+        <div class="search-results-info" id="searchInfo" style="display: none;">
+          <span id="resultsCount">נמצאו 0 תוצאות</span>
+          <button class="btn-link" id="resetFilters">אפס חיפוש</button>
+        </div>
+      </div>
+
+
 
       <!-- CONTENT -->
       <div class="content-area">
@@ -221,6 +291,7 @@
 
   <!-- SCRIPTS -->
   <script src="js/config.js"></script>
+  <script src="js/messages.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/api.js"></script>
   <script src="js/theme.js"></script>
@@ -236,15 +307,61 @@
       pageSize: 25,
       totalPages: 0,
       registrations: [],
+      filteredRegistrations: [],
       filters: {},
       
       async init() {
+    try {
+
         this.attachEventListeners();
         await this.loadRegistrations();
         await this.loadStats();
-      },
+    this.initializeSearch();
+          } catch (error) {
+      console.error('Error in init:', error);
+      Utils.showError('שגיאה. אנא נסה שוב.');
+    }
+  },
       
-      attachEventListeners() {
+    
+  initializeSearch() {
+    SearchComponent.init({
+      searchFields: ['name', 'phone', 'vehicleNumber', 'area', 'workArea'],
+      onSearch: (term, filters) => this.searchRegistrations(term, filters),
+      highlightResults: false
+    });
+  },
+  
+  searchRegistrations(searchTerm, filters) {
+    const statusFilter = document.getElementById('filter_status')?.value || '';
+    const areaFilter = document.getElementById('filter_area')?.value || '';
+    const dateFromFilter = document.getElementById('filter_dateFrom')?.value || '';
+    const dateToFilter = document.getElementById('filter_dateTo')?.value || '';
+    
+    this.filteredRegistrations = this.registrations.filter(item => {
+      const matchesSearch = SearchComponent.searchInFields(
+        item,
+        searchTerm,
+        ['name', 'phone', 'vehicleNumber', 'area', 'workArea']
+      );
+      
+      const matchesStatus = !statusFilter || item.status === statusFilter;
+      const matchesArea = !areaFilter || (item.area && item.area.toLowerCase().includes(areaFilter.toLowerCase())) || (item.workArea && item.workArea.toLowerCase().includes(areaFilter.toLowerCase()));
+      const itemDate = new Date(item.createdAt || item.date || item.sentAt);
+      const matchesDateFrom = !dateFromFilter || itemDate >= new Date(dateFromFilter);
+      const matchesDateTo = !dateToFilter || itemDate <= new Date(dateToFilter + 'T23:59:59');
+      
+      return matchesSearch && matchesStatus && matchesArea && matchesDateFrom && matchesDateTo;
+    });
+    
+    this.currentPage = 1;
+    this.renderTable();
+    this.renderPagination();
+    
+    return this.filteredRegistrations;
+  },
+  
+  attachEventListeners() {
         // Refresh
         document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadRegistrations());
         
@@ -302,7 +419,7 @@
           
           document.getElementById('registrationsCount').textContent = this.registrations.length;
         } catch (error) {
-          Utils.showAlert('שגיאה בטעינת רישומים: ' + error.message, 'error');
+          Utils.showAlert(MESSAGES.ERROR_15 + error.message, 'error');
         } finally {
           Utils.hideLoading();
         }
@@ -310,9 +427,13 @@
       
       renderTable() {
         const tbody = document.getElementById('registrationsTableBody');
+        
+        const hasActiveSearch = SearchComponent.searchTerm || Object.keys(SearchComponent.filters).length > 0;
+        const registrationsToShow = hasActiveSearch ? this.filteredRegistrations : this.registrations;
+        
         const start = (this.currentPage - 1) * this.pageSize;
         const end = start + this.pageSize;
-        const pageRegistrations = this.registrations.slice(start, end);
+        const pageRegistrations = registrationsToShow.slice(start, end);
         
         if (pageRegistrations.length === 0) {
           tbody.innerHTML = `
@@ -431,43 +552,59 @@
       },
       
       viewDetails(id) {
-        Utils.showAlert('פיצ'ר צפייה בפרטים יבוא בקרוב!', 'info');
+        Utils.showAlert(MESSAGES.MSG_26), "info");
       },
       
       async approve(id) {
-        if (!confirm('האם אתה בטוח שברצונך לאשר רישום זה?')) return;
+    try {
+
+        if (!confirm(MESSAGES.CONFIRM_1)) return;
         
         try {
           await API.approveRegistration(id);
-          Utils.showAlert('הרישום אושר בהצלחה והנהג נוצר במערכת', 'success');
+          Utils.showAlert(MESSAGES.SUCCESS_12, 'success');
           await this.loadRegistrations();
           await this.loadStats();
-        } catch (error) {
-          Utils.showAlert('שגיאה באישור: ' + error.message, 'error');
+            } catch (error) {
+      console.error('Error in approve:', error);
+      Utils.showError('שגיאה. אנא נסה שוב.');
+    }
+  } catch (error) {
+          Utils.showAlert(MESSAGES.ERROR_4 + error.message, 'error');
         }
       },
       
       async reject(id) {
+    try {
+
         const reason = prompt('הזן סיבה לדחייה:');
         if (!reason) return;
         
         try {
           await API.rejectRegistration(id, reason);
-          Utils.showAlert('הרישום נדחה', 'success');
+          Utils.showAlert(MESSAGES.MSG_6, 'success');
           await this.loadRegistrations();
           await this.loadStats();
-        } catch (error) {
-          Utils.showAlert('שגיאה בדחייה: ' + error.message, 'error');
+            } catch (error) {
+      console.error('Error in reject:', error);
+      Utils.showError('שגיאה. אנא נסה שוב.');
+    }
+  } catch (error) {
+          Utils.showAlert(MESSAGES.ERROR_6 + error.message, 'error');
         }
       },
       
       sendMessage(id) {
-        Utils.showAlert('פיצ'ר שליחת הודעה יבוא בקרוב!', 'info');
+        Utils.showAlert(MESSAGES.MSG_28), "info");
       }
     };
     
     // Init
     document.addEventListener('DOMContentLoaded', () => RegistrationsPage.init());
   </script>
+
+ <!-- Help System -->
+  <script src="js/help-button.js"></script>
+  <script src="js/search-component.js"></script>
 </body>
 </html>

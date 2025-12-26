@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ניהול מערכת - מערכת ניהול מוניות</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dark-mode.css">
+   <link rel="stylesheet" href="css/help-button.css">
+  <link rel="stylesheet" href="css/search-component.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2><i class="fas fa-taxi"></i> Taxi Manager</h2>
+        <div class="user-info" id="userInfo">
+          <i class="fas fa-user-circle"></i>
+          מנהל מערכת
+        </div>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li class="menu-section-title">ניהול</li>
+        <a href="dashboard.html" class="menu-item"><i class="fas fa-home"></i><span>לוח בקרה</span></a>
+        <a href="rides.html" class="menu-item"><i class="fas fa-car"></i><span>נסיעות</span></a>
+        <a href="drivers.html" class="menu-item"><i class="fas fa-users"></i><span>נהגים</span></a>
+        <a href="registrations.html" class="menu-item"><i class="fas fa-user-plus"></i><span>רישומים חדשים</span></a>
+        <a href="payments.html" class="menu-item"><i class="fas fa-money-bill-wave"></i><span>תשלומים</span></a>
+        <a href="messages.html" class="menu-item"><i class="fas fa-envelope"></i><span>הודעות</span></a>
+        
+        <li class="menu-section-title">מערכת</li>
+        <a href="system.html" class="menu-item active"><i class="fas fa-cogs"></i><span>ניהול מערכת</span></a>
+        <a href="settings.html" class="menu-item"><i class="fas fa-cog"></i><span>הגדרות</span></a>
+        <a href="#" class="menu-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span>התנתק</span></a>
+      </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <header class="header">
+        <div class="header-title">
+          <h1><i class="fas fa-cogs"></i> ניהול מערכת</h1>
+        </div>
+        <div class="header-actions">
+          <button class="btn-icon" id="themeToggle" title="החלף ערכת נושא">
+            <i class="fas fa-moon"></i>
+          </button>
+          <button class="btn-icon" title="רענן" onclick="SystemPage.init()">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </header>
+      <!-- 🆕 SEARCH COMPONENT -->
+      <div class="search-container">
+        <div class="search-bar">
+          <i class="fas fa-search"></i>
+          <input 
+            type="text" 
+            id="globalSearch" 
+            class="search-input"
+            placeholder="חפש פעולה, משתמש או תיאור..."
+            autocomplete="off">
+          <button class="search-clear" id="clearSearch" style="display: none;">
+            <i class="fas fa-times"></i>
+          </button>
+          <button class="search-advanced" id="advancedSearch">
+            <i class="fas fa-sliders-h"></i> סינון מתקדם
+          </button>
+        </div>
+        
+        <div class="advanced-filters" id="advancedFilters" style="display: none;">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label><i class="fas fa-filter"></i> סוג</label>
+              <select id="filter_type" class="filter-select">
+                <option value="">הכל</option>
+                <option value="info">מידע</option>
+                <option value="warning">אזהרה</option>
+                <option value="error">שגיאה</option>
+                <option value="success">הצלחה</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label><i class="fas fa-filter"></i> תאריך מ-</label>
+              <input type="date" id="filter_dateFrom" class="filter-input">
+            </div>
+
+            <div class="filter-group">
+              <label><i class="fas fa-filter"></i> תאריך עד</label>
+              <input type="date" id="filter_dateTo" class="filter-input">
+            </div>
+          </div>
+          
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+            <button class="btn btn-sm btn-secondary" onclick="SearchComponent.resetFilters()">
+              <i class="fas fa-undo"></i> אפס סינונים
+            </button>
+            <button class="btn btn-sm btn-primary" onclick="SearchComponent.applyAdvancedFilters()">
+              <i class="fas fa-check"></i> החל סינון
+            </button>
+          </div>
+        </div>
+        
+        <div class="search-results-info" id="searchInfo" style="display: none;">
+          <span id="resultsCount">נמצאו 0 תוצאות</span>
+          <button class="btn-link" id="resetFilters">אפס חיפוש</button>
+        </div>
+      </div>
+
+
+
+      <div class="content-area">
+        
+        <!-- SYSTEM HEALTH -->
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-heartbeat"></i> תקינות המערכת</h2>
+            <button class="btn btn-sm btn-primary" onclick="SystemPage.checkHealth()">
+              <i class="fas fa-sync"></i> בדוק תקינות
+            </button>
+          </div>
+          <div class="card-body">
+            <div id="healthStatus">
+              <p style="text-align: center; color: var(--gray); padding: 40px;">
+                לחץ על "בדוק תקינות" לבדיקת סטטוס המערכת
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SYSTEM STATS -->
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-chart-bar"></i> סטטיסטיקות מערכת</h2>
+          </div>
+          <div class="card-body">
+            <div id="systemStats">
+              <div style="text-align: center; padding: 40px;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 24px;"></i>
+                <p style="margin-top: 10px;">טוען סטטיסטיקות...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOGS CLEANUP -->
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-broom"></i> ניקוי לוגים</h2>
+          </div>
+          <div class="card-body">
+            <p style="margin-bottom: 20px;">מחק לוגים ישנים כדי לפנות מקום ולשפר ביצועים</p>
+            
+            <div class="form-group">
+              <label>מחק לוגים ישנים מ:</label>
+              <select id="logDays" class="form-control" style="max-width: 300px;">
+                <option value="7">שבוע (7 ימים)</option>
+                <option value="30" selected>חודש (30 ימים)</option>
+                <option value="90">3 חודשים (90 ימים)</option>
+                <option value="180">חצי שנה (180 ימים)</option>
+              </select>
+            </div>
+            
+            <button class="btn btn-warning" onclick="SystemPage.cleanLogs()">
+              <i class="fas fa-trash"></i> נקה לוגים
+            </button>
+          </div>
+        </div>
+
+        <!-- BACKUPS -->
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-database"></i> ניהול גיבויים</h2>
+            <button class="btn btn-sm btn-success" onclick="SystemPage.createBackup()">
+              <i class="fas fa-save"></i> צור גיבוי חדש
+            </button>
+          </div>
+          <div class="card-body">
+            <div id="backupsList">
+              <div style="text-align: center; padding: 40px;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 24px;"></i>
+                <p style="margin-top: 10px;">טוען גיבויים...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/messages.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/theme.js"></script>
+  
+  <script>
+    const SystemPage = {
+      async init() {
+        console.log('🔧 System Page Initializing...');
+        await this.loadStats();
+        await this.loadBackups();
+    this.initializeSearch();
+        this.setupEventListeners();
+      },
+  initializeSearch() {
+    SearchComponent.init({
+      searchFields: ['action', 'user', 'description', 'type'],
+      onSearch: (term, filters) => this.searchSystemLogs(term, filters),
+      highlightResults: false
+    });
+  },
+  
+  searchSystemLogs(searchTerm, filters) {
+    const typeFilter = document.getElementById('filter_type')?.value || '';
+    const dateFromFilter = document.getElementById('filter_dateFrom')?.value || '';
+    const dateToFilter = document.getElementById('filter_dateTo')?.value || '';
+    
+    this.filteredSystemLogs = this.systemLogs.filter(item => {
+      const matchesSearch = SearchComponent.searchInFields(
+        item,
+        searchTerm,
+        ['action', 'user', 'description', 'type']
+      );
+      
+      const matchesType = !typeFilter || item.type === typeFilter;
+      const itemDate = new Date(item.createdAt || item.date || item.sentAt);
+      const matchesDateFrom = !dateFromFilter || itemDate >= new Date(dateFromFilter);
+      const matchesDateTo = !dateToFilter || itemDate <= new Date(dateToFilter + 'T23:59:59');
+      
+      return matchesSearch && matchesType && matchesDateFrom && matchesDateTo;
+    });
+    
+    this.currentPage = 1;
+    this.renderTable();
+    this.renderPagination();
+    
+    return this.filteredSystemLogs;
+  },
+  
+
+      
+      setupEventListeners() {
+        // Logout
+        document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (confirm(MESSAGES.CONFIRM_8)) {
+            api.logout().then(() => {
+              window.location.href = 'index.html';
+            });
+          }
+        });
+      },
+      
+      async checkHealth() {
+        try {
+          const health = await api.getSystemHealth();
+          
+          const statusClass = health.status === 'healthy' ? 'success' : 'warning';
+          const statusIcon = health.status === 'healthy' ? 'check-circle' : 'exclamation-triangle';
+          
+          const container = document.getElementById('healthStatus');
+          container.innerHTML = `
+            <div class="alert alert-${statusClass}" style="margin-bottom: 20px;">
+              <i class="fas fa-${statusIcon}"></i>
+              <strong>סטטוס מערכת: ${health.status === 'healthy' ? '✅ תקין' : '⚠️ דורש תשומת לב'}</strong>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+              <div class="stat-box">
+                <div class="stat-label"><i class="fas fa-clock"></i> זמן פעילות</div>
+                <div class="stat-value">${health.uptime.formatted}</div>
+              </div>
+              
+              <div class="stat-box">
+                <div class="stat-label"><i class="fas fa-database"></i> מסד נתונים</div>
+                <div class="stat-value ${health.database.connected ? 'text-success' : 'text-danger'}">
+                  ${health.database.connected ? '✅ מחובר' : '❌ מנותק'}
+                </div>
+              </div>
+              
+              <div class="stat-box">
+                <div class="stat-label"><i class="fas fa-memory"></i> זיכרון</div>
+                <div class="stat-value">${health.memory.heapUsed}</div>
+                <small style="color: var(--gray);">מתוך ${health.memory.heapTotal}</small>
+              </div>
+              
+              <div class="stat-box">
+                <div class="stat-label"><i class="fas fa-microchip"></i> Process ID</div>
+                <div class="stat-value">${health.process.pid}</div>
+              </div>
+            </div>
+            
+            ${health.records ? `
+              <div style="margin-top: 20px; padding: 15px; background: var(--bg-secondary); border-radius: 8px;">
+                <strong><i class="fas fa-chart-line"></i> רשומות במערכת:</strong>
+                <div style="display: flex; gap: 20px; margin-top: 10px; flex-wrap: wrap;">
+                  <span><i class="fas fa-users"></i> ${health.records.drivers || 0} נהגים</span>
+                  <span><i class="fas fa-car"></i> ${health.records.rides || 0} נסיעות</span>
+                  <span><i class="fas fa-money-bill"></i> ${health.records.payments || 0} תשלומים</span>
+                </div>
+              </div>
+            ` : ''}
+            
+            <div style="margin-top: 15px; text-align: center;">
+              <small style="color: var(--gray);">
+                <i class="fas fa-clock"></i> עדכון אחרון: ${new Date(health.timestamp).toLocaleString('he-IL')}
+              </small>
+            </div>
+          `;
+          
+        } catch (error) {
+          console.error('Error checking health:', error);
+          document.getElementById('healthStatus').innerHTML = `
+            <div class="alert alert-danger">
+              <i class="fas fa-times-circle"></i>
+              שגיאה בבדיקת תקינות: ${error.message}
+            </div>
+          `;
+        }
+      },
+      
+      async loadStats() {
+        try {
+          const stats = await api.getSystemStats();
+          
+          const container = document.getElementById('systemStats');
+          container.innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+              
+              <div class="stat-card">
+                <div class="stat-icon primary">
+                  <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                  <h3>נהגים</h3>
+                  <div class="stat-value">${stats.drivers.total}</div>
+                  <div class="stat-details">
+                    <span><i class="fas fa-check-circle text-success"></i> ${stats.drivers.active} פעילים</span>
+                    <span><i class="fas fa-ban text-danger"></i> ${stats.drivers.blocked} חסומים</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="stat-card">
+                <div class="stat-icon success">
+                  <i class="fas fa-car"></i>
+                </div>
+                <div class="stat-info">
+                  <h3>נסיעות</h3>
+                  <div class="stat-value">${stats.rides.total}</div>
+                  <div class="stat-details">
+                    <span><i class="fas fa-check text-success"></i> ${stats.rides.completed} הושלמו</span>
+                    <span><i class="fas fa-times text-danger"></i> ${stats.rides.cancelled} בוטלו</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="stat-card">
+                <div class="stat-icon warning">
+                  <i class="fas fa-shekel-sign"></i>
+                </div>
+                <div class="stat-info">
+                  <h3>תשלומים</h3>
+                  <div class="stat-value">${stats.payments.total}</div>
+                  <div class="stat-details">
+                    <span><i class="fas fa-check text-success"></i> ${stats.payments.paid} שולמו</span>
+                    <span><i class="fas fa-clock text-warning"></i> ${stats.payments.pending} ממתינים</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="stat-card">
+                <div class="stat-icon info">
+                  <i class="fas fa-history"></i>
+                </div>
+                <div class="stat-info">
+                  <h3>פעילויות</h3>
+                  <div class="stat-value">${stats.activities.today}</div>
+                  <div class="stat-details">
+                    <span><i class="fas fa-calendar-day"></i> היום</span>
+                    <span><i class="fas fa-database"></i> ${stats.activities.total} סה"כ</span>
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+          `;
+          
+        } catch (error) {
+          console.error('Error loading stats:', error);
+          document.getElementById('systemStats').innerHTML = `
+            <div class="alert alert-danger">
+              <i class="fas fa-times-circle"></i>
+              שגיאה בטעינת סטטיסטיקות: ${error.message}
+            </div>
+          `;
+        }
+      },
+      
+      async cleanLogs() {
+        const days = document.getElementById('logDays').value;
+        
+        if (!confirm(`האם למחוק לוגים ישנים מ-${days} ימים ומעלה?`)) return;
+        
+        try {
+          const btn = event.target;
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> מנקה...';
+          
+          const result = await api.cleanupLogs({ olderThanDays: parseInt(days) });
+          
+          alert(`✅ הניקוי הושלם!\n\nנמחקו:\n- ${result.deletedActivities} רשומות פעילות\n- ${result.deletedFiles} קבצי לוג`);
+          
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-trash"></i> נקה לוגים';
+          
+        } catch (error) {
+          console.error('Error cleaning logs:', error);
+          alert('❌ שגיאה בניקוי לוגים: ' + error.message);
+          event.target.disabled = false;
+          event.target.innerHTML = '<i class="fas fa-trash"></i> נקה לוגים';
+        }
+      },
+      
+      async createBackup() {
+        if (!confirm(MESSAGES.MSG_9)) return;
+        
+        try {
+          const btn = event.target;
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> יוצר גיבוי...';
+          
+          const result = await api.createBackup();
+          
+          alert(`✅ הגיבוי נוצר בהצלחה!\n\nשם: ${result.name}\nגודל: ${(result.size / 1024 / 1024).toFixed(2)} MB\nרשומות: ${result.counts.drivers + result.counts.rides + result.counts.payments}`);
+          
+          await this.loadBackups();
+          
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-save"></i> צור גיבוי חדש';
+          
+        } catch (error) {
+          console.error('Error creating backup:', error);
+          alert('❌ שגיאה ביצירת גיבוי: ' + error.message);
+          event.target.disabled = false;
+          event.target.innerHTML = '<i class="fas fa-save"></i> צור גיבוי חדש';
+        }
+      },
+      
+      async loadBackups() {
+        try {
+          const backups = await api.getBackups();
+          const container = document.getElementById('backupsList');
+          
+          if (backups.length === 0) {
+            container.innerHTML = `
+              <div style="text-align: center; padding: 40px; color: var(--gray);">
+                <i class="fas fa-inbox" style="font-size: 48px; opacity: 0.3; margin-bottom: 15px;"></i>
+                <p>אין גיבויים קיימים</p>
+                <p style="font-size: 14px;">לחץ על "צור גיבוי חדש" כדי ליצור גיבוי ראשון</p>
+              </div>
+            `;
+            return;
+          }
+          
+          container.innerHTML = `
+            <div style="display: grid; gap: 15px;">
+              ${backups.map(backup => `
+                <div class="backup-card" style="padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-secondary);">
+                  <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                      <h4 style="margin: 0 0 5px 0;">
+                        <i class="fas fa-database"></i> ${backup.name}
+                      </h4>
+                      <div style="font-size: 14px; color: var(--gray); margin-bottom: 10px;">
+                        <i class="fas fa-clock"></i> ${new Date(backup.createdAt).toLocaleString('he-IL')}
+                      </div>
+                      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <span class="badge badge-primary">
+                          <i class="fas fa-hdd"></i> ${(backup.size / 1024 / 1024).toFixed(2)} MB
+                        </span>
+                        <span class="badge badge-info">
+                          <i class="fas fa-users"></i> ${backup.counts.drivers} נהגים
+                        </span>
+                        <span class="badge badge-info">
+                          <i class="fas fa-car"></i> ${backup.counts.rides} נסיעות
+                        </span>
+                        <span class="badge badge-info">
+                          <i class="fas fa-money-bill"></i> ${backup.counts.payments} תשלומים
+                        </span>
+                        ${backup.counts.registrations ? `
+                          <span class="badge badge-info">
+                            <i class="fas fa-user-plus"></i> ${backup.counts.registrations} רישומים
+                          </span>
+                        ` : ''}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+          
+        } catch (error) {
+          console.error('Error loading backups:', error);
+          document.getElementById('backupsList').innerHTML = `
+            <div class="alert alert-danger">
+              <i class="fas fa-times-circle"></i>
+              שגיאה בטעינת גיבויים: ${error.message}
+            </div>
+          `;
+        }
+      }
+    };
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      SystemPage.init();
+    });
+  </script>
+  
+  <style>
+    .stat-box {
+      padding: 20px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      text-align: center;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      color: var(--gray);
+      margin-bottom: 8px;
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
+      color: var(--text-primary);
+    }
+    
+    .stat-details {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--gray);
+    }
+    
+    .text-success { color: #10b981; }
+    .text-danger { color: #ef4444; }
+    .text-warning { color: #f59e0b; }
+    
+    .backup-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
+      transition: all 0.2s;
+    }
+  </style>
+
+  <!-- Help System -->
+  <script src="js/help-button.js"></script>
+  <script src="js/search-component.js"></script>
+</body>
+</html>
